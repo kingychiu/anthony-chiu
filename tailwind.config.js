@@ -14,6 +14,18 @@ module.exports = {
   ],
   darkMode: 'class',
   theme: {
+    fontSize: {
+      xs: '.75rem',
+      sm: '0.875rem',
+      base: '1rem',
+      lg: '1.125rem',
+      xl: '1.25rem',
+      '2xl': '1.5rem',
+      '4xl': '2.25rem',
+      '5xl': '3rem',
+      '6xl': '4rem',
+      '7xl': '5rem',
+    },
     extend: {
       spacing: {
         '9/16': '56.25%',
@@ -25,15 +37,16 @@ module.exports = {
         14: '3.5rem',
       },
       fontFamily: {
-        sans: ['InterVariable', ...defaultTheme.fontFamily.sans],
+        sans: ['Source Serif Pro', ...defaultTheme.fontFamily.sans],
       },
       colors: {
-        primary: colors.teal,
-        gray: colors.neutral,
+        primary: colors.sky,
+        gray: colors.slate,
       },
       typography: (theme) => ({
         DEFAULT: {
           css: {
+            fontSize: '1.25rem',
             color: theme('colors.gray.700'),
             a: {
               color: theme('colors.primary.500'),
