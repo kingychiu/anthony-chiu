@@ -34,6 +34,7 @@ const Giscus = ({ mapping }) => {
     script.setAttribute('data-lang', lang)
     script.setAttribute('data-theme', commentsTheme)
     script.setAttribute('crossorigin', 'anonymous')
+    script.setAttribute('loading', 'lazy')
     script.async = true
 
     const comments = document.getElementById(COMMENTS_ID)
@@ -47,14 +48,15 @@ const Giscus = ({ mapping }) => {
 
   // Reload on theme change
   useEffect(() => {
-    const iframe = document.querySelector('iframe.giscus-frame')
-    if (!iframe) return
+    console.log('Load comments')
+    // const iframe = document.querySelector('iframe.giscus-frame')
+    // if (!iframe) return
     LoadComments()
-  }, [LoadComments])
+  }, [])
 
   return (
     <div className="pt-6 pb-6 text-center text-gray-700 dark:text-gray-300">
-      {enableLoadComments && <button onClick={LoadComments}>Load Comments</button>}
+      {/* {enableLoadComments && <button onClick={LoadComments}>Load Comments</button>} */}
       <div className="giscus" id={COMMENTS_ID} />
     </div>
   )
