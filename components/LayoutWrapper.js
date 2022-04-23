@@ -15,15 +15,16 @@ const LayoutWrapper = ({ children }) => {
         <header className="flex items-center justify-between py-10">
           <div>
             <div className="flex items-center justify-between">
-              <div className="mr-3">
-                <Link href="/" aria-label={siteMetadata.headerTitle}>
-                  <Image width="50px" height="50px" alt="logo" src={siteMetadata.siteLogo} />
-                </Link>
-              </div>
+              <Link className="mr-3" href="/" aria-label={siteMetadata.headerTitle}>
+                <Image width="50px" height="50px" alt="logo" src={siteMetadata.siteLogo} />
+              </Link>
               <Link href="/" aria-label={siteMetadata.headerTitle}>
                 <h1 className="hidden text-2xl font-semibold sm:block">
                   {siteMetadata.headerTitle}
                 </h1>
+              </Link>
+              <Link href="/" aria-label={siteMetadata.headerTitle}>
+                <Image width="100px" height="100px" alt="logo" src="/static/images/sorb.gif" />
               </Link>
             </div>
           </div>
