@@ -1,6 +1,6 @@
 ---
 name: Anthony Chiu
-avatar:
+avatar: /static/images/avatar.png
 occupation: Software Engineer
 linkedin: https://www.linkedin.com/in/kingychiu/
 github: https://github.com/kingychiu

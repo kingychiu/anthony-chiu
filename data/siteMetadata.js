@@ -8,7 +8,7 @@ const siteMetadata = {
   siteUrl: 'https://www.anthonychiu.xyz',
   siteRepo: 'https://github.com/kingychiu/personal-website',
   siteLogo: '/static/images/logo.svg',
-  image: 'https://avatars.githubusercontent.com/u/11500136',
+  image: '/static/images/avatar.png',
   socialBanner: '',
   email: '',
   github: 'https://github.com/kingychiu',
