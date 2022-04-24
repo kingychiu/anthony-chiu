@@ -217,11 +217,11 @@ Where $w$ and $b$ are the learning weights.
 
 The learning weights are not dependent on the sequence length. They are sharable weights for each sequence position. To understand this operation, let's unfold each matrix multiplication step by step.
 
-- Let $H_1 = (X \times W)_{sc} = \sum_{d=1}^{D} x_{sd}w_{dc}$
+- Let $H_{1_{(s,c)}} = (X \times W)_{(s,c)} = \sum_{d=1}^{D} X_{(s,d)}W_{(d,c)}$
   - So, the model learns a weight $W$ that filters / aggregates the original feature dimension $D$ into the channel dimension $C$.
-- Then $H_2 = (A \times H_1)_{sc} = \sum_{s=1}^{S} a_{ss}h_{1_{sc}}$
+- Then $H_{2_{(s,c)}} = (A \times H_1)_{(s,c)} = \sum_{s=1}^{S} A_{(s,s)}H_{1_{(s,c)}}$
   - The filtered / aggregated hidden states $H_1$ is then multiplied with the given adjacency matrix $A$.
-  - $A$ is the pairing probabilities matrix. An unpaired base with position $s$ has a zero or close to zero $a_{ss}$. As a result, the s-th vector of $H_2​$ represents the information coming from the sequence positions paired with the s-th position.
+  - $A$ is the pairing probabilities matrix. An unpaired base with position $s$ has a zero or close to zero $A_{(s,s)}$. As a result, the s-th vector of $H_2​$ represents the information coming from the sequence positions paired with the s-th position.
   - Therefore concatenating the $X$ with $\mathbf{GraphConv}(X, A)$ helps construct a new hidden state containing both the original sequence position information and the paired position information.
 
 ### RNN layers for longer range propagation
