@@ -1,0 +1,184 @@
+---
+title: 'JavaScript Mutability and why it is important to React'
+date: '2022-04-24'
+lastmod: '2022-04-24'
+tags: ['JavaScript', 'Mutable', 'Immutable', 'Computer Memory']
+draft: true
+layout: PostSimple
+summary: ''
+images: ['']
+authors: ['default']
+---
+
+## Overview
+
+In this article, I am trying my best to explain JavaScript `Mutability` **without** touching the concept of `Memory Allocation`.
+Although `Memory Allocation` is very important, but it doesn't make sense
+to have it as a hard requirement to learn a high-level language like JavaScript.
+
+Most of the contents here are copied from the other websites.
+The objective of this post is to give code examples and
+visualization to these fundamental yet confusing topics.
+
+<TOCInline exclude="Overview" toc={props.toc} asDisclosure />
+
+## Primitive Type and Object Class
+
+A primitive type value cannot be mutated (immutable), while a JavaScript Object is mutable.
+
+> There are 7 primitive data types: `string`, `number`, `bigint`, `boolean`, `undefined`, `symbol`, and `null`.
+> **All primitives are `immutable`**, i.e., they cannot be altered. It is important not to confuse a primitive itself with a variable assigned a primitive value.
+
+Quoted from [Primitive - MDN Web Docs Glossary](https://developer.mozilla.org/en-US/docs/Glossary/Primitive)
+
+> `Mutable` is a type of variable **that can be changed**.
+> In JavaScript, **only objects and arrays are mutable**, not primitive values.
+
+Quoted from [Mutable - MDN Web Docs Glossary](https://developer.mozilla.org/en-US/docs/Glossary/Mutable)
+
+Now we have a brief idea of which JS types are mutable which aren't.
+But what actually are JavaScript Objects?
+
+> The `Object` class represents one of JavaScript's data types. **Nearly all objects in JavaScript are instances of `Object`**
+
+Quoted from [Object - JavaScript | MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+
+Alright, so basically if we are not doing something advance, apart from the values of the above 7 primitive types,
+all other stuffs are instances of `Object` class and therefore they are `mutable`.
+
+### What are instances of the `Object` class?
+
+To better understand what are an instance of `Object` class, we can demonstrate this concept with
+[instanceof](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof).
+
+> The instanceof operator tests to see if the prototype property of a constructor appears anywhere in the prototype chain of an object. The return value is a boolean value.
+
+Firstly let's take a look if a primitive type is an instance of `Object` class, if we run the following code,
+we will find the 1 as a `number` is not an instance of the `Object` class.
+
+```JavaScript
+const a = 1
+console.log("a:", a) // -> 1
+console.log(
+  "a instanceof Object:",
+  a instanceof Object,
+) // -> false
+```
+
+Next we can see an `array` is an instance of `Object` class:
+
+```JavaScript
+c = [1, 2, 3]
+console.log("c:", c) // -> [1, 2, 3]
+console.log(
+  "c instanceof Object:",
+  c instanceof Object,
+) // -> true
+console.log("c[0]:", c[0]) // -> 1
+console.log(
+  "c[0] b instanceof Object:",
+  c[0] instanceof Object,
+) // -> false
+```
+
+This also applies to an `array of arrays`. The `arrays` inside an `array` are also instances of `Object` class:
+
+```JavaScript
+e = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+console.log("e:", e) // -> [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+console.log(
+  "e instanceof Object:",
+  e instanceof Object,
+) // -> true
+console.log("e[0]:", e[0]) // -> [1, 2, 3]
+console.log(
+  "e[0] instanceof Object:",
+  e[0] instanceof Object,
+) // -> true
+console.log("e[0][0]:", e[0][0]) // -> 1
+console.log(
+  "e[0][0] instanceof Object",
+  e[0][0] instanceof Object,
+) // -> false
+```
+
+Replit real code demo below:
+
+<iframe
+  frameBorder="0"
+  width="100%"
+  height="500px"
+  src="https://replit.com/@AnthonyChiu2/Is-it-an-instance-of-the-Object-class?embed=true&lite=true"
+></iframe>
+
+## Stack Frame Diagram
+
+I would only continue our discussion in terms of `Stack Frame Diagrams` to avoid touching the details of JavaScript `Memory Allocation`.
+Stack Frame Diagram is an `abstraction` for describing a programing language runtime memory behavior;
+the actual memory allocation might be different from Stack Frame Diagram. This is very important as we are not discussing at the level of
+`JavaScript engine` or `Operating System`. If you are really interested into the implementations this is a great discussion thread:
+[JavaScript, Ruby and C are not call by reference](https://dev.to/xpbytes/javascript-ruby-and-c-are-not-call-by-reference-23f7)
+
+The Stack Frame Diagram visualizer I am using fow the remaining discussion is https://pythontutor.com/
+
+## What are References?
+
+References are the internals of a language, different languages have different implementations.
+Again a very good explanation here if you are interested: (For JavaScript)
+
+> A reference type doesn't store its value directly.
+> Instead, it stores the address where the value is being stored.
+
+Quoted from [JavaScript, Ruby and C are not call by reference](https://dev.to/xpbytes/javascript-ruby-and-c-are-not-call-by-reference-23f7)
+
+## Primitive Type and Object Class in Stack Frame Diagram
+
+<div>
+  <img
+    alt="primitive-type-and-object-stack-frame"
+    src="/static/images/javascript-Mutability/primitive-type-and-object-sf.png"
+    style={{ background: 'white', maxHeight: '300px', margin: 'auto' }}
+  />
+</div>
+
+In the above visualization, we can see `a` and `b` are stored in a frame called `Global`,
+while only the references of `c` and `d` are stored at the `Global` frame. The actual values contained in `c` and `d` are
+stored elsewhere.
+
+## Reassigning Value to a Variable
+
+<div>
+  <img
+    alt="reassigning-primitive-type-stack-frame"
+    src="/static/images/javascript-Mutability/reassigning-primitive-type-sf.png"
+    style={{ background: 'white', maxHeight: '300px', margin: 'auto' }}
+  />
+</div>
+
+Now, if we re-assign `a` and `b`, we can see the values under the `Global` frame are updated.
+
+<div>
+  <img
+    alt="reassigning-object-stack-frame"
+    src="/static/images/javascript-Mutability/reassigning-object-sf.png"
+    style={{ background: 'white', maxHeight: '400px', margin: 'auto' }}
+  />
+</div>
+
+If we re-assign `c` and `d` with another values, we can see the original `[1, 2, 3]`
+and `{k1: "v1", k2: "v2"}` are gone.
+
+## Assigning a Variable's Value to Another Variable
+
+<div>
+  <img
+    alt="assign-a-variable-value-to-another-stack-frame"
+    src="/static/images/javascript-Mutability/assign-a-variable-value-to-another-sf.png"
+    style={{ background: 'white', maxHeight: '400px', margin: 'auto' }}
+  />
+</div>
+
+Now, we declare new variables (`e`, `f`, `h`, `i`) and assigning
+the values of the other variables (`a`, `b`, `c`, `d`) to them.
+From the visualization we can see `e` and `f` got new copies of the values from `a` and `b`, while
+`h` and `i` store the references that referencing the same values referenced by `c` and `d`.
