@@ -1,9 +1,10 @@
 import siteMetadata from '@/data/siteMetadata'
+import Script from 'next/script'
 
 const HotJarScript = () => {
   return (
     <>
-      <script>
+      <Script strategy="lazyOnload" id="hotjar-script">
         {`
             (function(h,o,t,j,a,r){
                 h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
@@ -14,7 +15,7 @@ const HotJarScript = () => {
                 a.appendChild(r);
             })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
         `}
-      </script>
+      </Script>
     </>
   )
 }
