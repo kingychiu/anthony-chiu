@@ -91,19 +91,23 @@ The above code generates the following dataframe:
 Based on the observations of $(X=x_i, Y=y_j)$ we can calculate the marginal probability $P(X=x_i)$ by
 marginalizing $Y$:
 
-<div style={{ overflowX: 'auto' }}>$$ P(X=x_i) = \sum_{j} P(X=x_i, Y=y_j) $$</div>
+$$
+P(X=x_i) = \sum_{j} P(X=x_i, Y=y_j)
+$$
 
 For example, we can compute $P(X=\mathbf{IPhoneSE})$ by adding up the corresponding joint
 probabilites for each gender.
 
-<div style={{ overflowX: 'auto' }}>
-  $$ P(X=\mathbf{IPhoneSE}) = P(X=\mathbf{IPhoneSE}, Y=\mathbf{Male}) + P(X=\mathbf{IPhoneSE},
-  Y=\mathbf{Female}) $$
-</div>
+$$
+P(X=\mathbf{IPhoneSE}) = P(X=\mathbf{IPhoneSE}, Y=\mathbf{Male}) + P(X=\mathbf{IPhoneSE},
+Y=\mathbf{Female})
+$$
 
 Applying this to all $X$'s outcomes we get the marginal probability distribution $P(X)$:
 
-<div style={{ overflowX: 'auto' }}>$$ P(X) = \sum_{Y} P(X, Y) $$</div>
+$$
+P(X) = \sum\_{Y} P(X, Y)
+$$
 
 This is called the `sum rule of probability theory`.
 The following code shows how to compute the marginal probability distribution:
@@ -157,19 +161,17 @@ The above code generates the following dataframe:
 
 From the result we can also observe that the conditional probability $P(Y=y_j|X=x_j)$ can be calculated:
 
-<div style={{ overflowX: 'auto' }}>
-  $$ P(Y=y_j|X=x_i) = \frac{P((X = x_i), (Y = y_j))}
-  {P((X = x_i))}
-  $$
-</div>
+$$
+P(Y=y_j|X=x_i) = \frac{P((X = x_i), (Y = y_j))}
+{P((X = x_i))}
+$$
 
 And the conditional probability distribution can be written as:
 
-<div style={{ overflowX: 'auto' }}>
-  $$ P(Y|X) = \frac{P(X, Y)}
-  {P(X)}
-  $$
-</div>
+$$
+P(Y|X) = \frac{P(X, Y)}
+{P(X)}
+$$
 
 And, $P(X,Y)=P(Y|X)P(X)$ is called the `product rule of probability theory`.
 
