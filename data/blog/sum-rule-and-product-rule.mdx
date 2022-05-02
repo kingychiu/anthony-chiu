@@ -59,11 +59,12 @@ For example, if $X$ and $Y$ are the smartphone model and the gender we
 found in an experiment, respectively, $P(X=\mathbf{IPhoneSE}, Y=\mathbf{Male})$ indicates the probability of finding a male with IPhone SE in the experiment.
 
 After obtaining the joint probability of each $(X=x_i, Y=y_j)$ pair, we can get the joint probability distribution $P(X, Y)$.
-To illustrate this idea, the following code generates 1000 pairs of $(x, y)$:
+To illustrate this idea, the following code generates 1000 $(X=x_i, Y=y_j)$ pairs (`xs` and `ys`):
 
 ```python
-# Take 1000 samples
+# Take 1000 samples between [1, 4)
 xs = [np.random.randint(1, 5) for _ in range(1000)]
+# Take 1000 samples between [1, 2)
 ys = [np.random.randint(1, 3) for _ in range(1000)]
 # Count the (x, y) pairs and convert them to a dataframe
 joint_dist_df = pd.DataFrame.from_dict(Counter(zip(xs, ys)), orient="index").reset_index()
@@ -95,7 +96,8 @@ $$
 P(X=x_i) = \sum_{j} P(X=x_i, Y=y_j)
 $$
 
-For example, we can compute $P(X=\mathbf{IPhoneSE})$ by adding up the corresponding joint
+For example, if $X$ and $Y$ are the smartphone model and the gender we
+found in an experiment, respectively. We can compute $P(X=\mathbf{IPhoneSE})$ by adding up the corresponding joint
 probabilites for each gender.
 
 $$
@@ -106,7 +108,7 @@ $$
 Applying this to all $X$'s outcomes we get the marginal probability distribution $P(X)$:
 
 $$
-P(X) = \sum\_{Y} P(X, Y)
+P(X) = \sum_{Y} P(X, Y)
 $$
 
 This is called the `sum rule of probability theory`.
@@ -159,11 +161,11 @@ The above code generates the following dataframe:
   <div className="text-center">Conditional Probability Distribution $P(Y|X)$</div>
 </div>
 
-From the result we can also observe that the conditional probability $P(Y=y_j|X=x_j)$ can be calculated:
+From the result we can also observe that the conditional probability $P(Y=y_j|X=x_j)$ can be calculated with:
 
 $$
-P(Y=y_j|X=x_i) = \frac{P((X = x_i), (Y = y_j))}
-{P((X = x_i))}
+P(Y=y_j|X=x_i) = \frac{P(X = x_i, Y = y_j)}
+{P(X = x_i)}
 $$
 
 And the conditional probability distribution can be written as:
@@ -177,15 +179,30 @@ And, $P(X,Y)=P(Y|X)P(X)$ is called the `product rule of probability theory`.
 
 ## Independence
 
-If two events $X=x_i$ and $Y=y_j$ are independent:
+There is a special case for the `product rule` above. If two events $X=x_i$ and $Y=y_j$ are independent, Knowing $X=x_i$ in advance won't change the
+probability of having $Y=y_j$; therefore:
 
-- The conditional probability becomes $P(Y_j|X=x_i) = P(Y=y_j)$
+- The conditional probability becomes $P(Y=y_j|X=x_i) = P(Y=y_j)$
 - The conditional probability distribution becomes $P(Y|X) = P(Y)$
-- The joint probability distribution becomes: $P(X, Y) = P(X) \times P(Y)$
+
+Applying this new information to the `product rule` above we will get:
+
+$$
+P(X, Y) = P(X) \times P(Y)
+$$
+
+if $X=x_i$ and $Y=y_j$ are independent.
 
 ## Test of Independence
 
-In the Python coding example, we generate `xs` and `ys` uniformly and independently. But why we are not
+```python
+# Take 1000 samples between [1, 4)
+xs = [np.random.randint(1, 5) for _ in range(1000)]
+# Take 1000 samples between [1, 2)
+ys = [np.random.randint(1, 3) for _ in range(1000)]
+```
+
+In the Python coding example, we generated 1000 $(X=x_i, Y=y_j)$ pairs (`xs` and `ys`) uniformly and independently. But why we are not
 getting a perfect result of $P(X, Y) = P(X) \times P(Y)$?
 
 We can find the root cause by looking at the marginal probabilities of $X$ and $Y$. Ideally we should see $P(X=x_i)=0.25$ and $P(Y=y_j)=0.5$, but
@@ -193,10 +210,10 @@ it is not the case.
 
 We can use the Chi-squared test to test if two categorical values are independent.
 
-Chi-squared test tests if two categories of a contingency table are dependent on each other or not.
+Chi-squared test tests if two categorical variables are dependent on each other or not.
 
-- The null hypothesis: `xs` and `ys` are independent.
-- The alternative hypothesis: `xs` and `ys` are dependent.
+- The null hypothesis: $(X=x_i)$ and $(Y=y_j)$ are independent.
+- The alternative hypothesis: $(X=x_i)$ and $(Y=y_j)$ are dependent.
 
 ```python
 from sklearn.feature_selection import chi2
@@ -207,21 +224,24 @@ chi2(np.array(xs).reshape(-1, 1), np.array(ys).reshape(-1, 1))
 # > (array([0.88852322]), array([0.34587782]))
 ```
 
-The test returns a P-value of 0.346; therefore, we cannot reject the null hypothesis that `xs` and `ys` are independent. So
-there is a problem in the process above. The probabilities obtained from counting are not entirely accurate.
+The test returns a P-value of 0.346; therefore, we cannot reject the null hypothesis that $(X=x_i)$ and $(Y=y_j)$ are independent. So
+there is a problem in the process above: the probabilities obtained from counting observations are not entirely accurate.
 
 ## Frequentist Probability and Bayesian Probability
 
-The entire discussion above is based on counting. It is called the Frequentist Probability.
-The Frequentist Probability requires many trials in an experiment to have an accurate probability distribution. In the code example, we only sampled 1000 pairs of $(X=x_i, Y=y_j)$, which is too small.
+The entire discussion above is based on counting observations. It is called the Frequentist Probability.
+The Frequentist Probability requires many trials in an experiment to have an accurate probability distribution. In the code example, we only sampled 1000 $(X=x_i, Y=y_j)$ pairs (`xs` and `ys`), which is too small.
 If we increase the sample size, we can see the marginal probabilities will get closer to the ideal values.
 
 However, it is hard to produce the exact $P(X, Y) = P(X) \times P(Y)$ even with a very large number of trials. In this case, since we know `xs` and `ys` are generated from two
 independent processes, we can set $P(X=x_i)=0.25$ and $P(Y=y_j)=0.5$ manually instead. This is a perspective of Bayesian Probability.
-In Bayes' Theorem, $P(Y=y_i)$ is the prior probability; humans set that.
+In Bayes' Theorem, $P(Y=y_i)$ is the prior probability, which is set by humans.
+
+In other words, based on the human knowledge, we can decide if we want to use the $P(X)$, $P(Y)$ from
+counting observations or use the following theorical values:
 
 - Set $P(X)$ to be a uniform distribution with $P(X=x_i)=0.25$
-- Set $P(Y)$ to be a uniform distribution with $P(Y=y_i)=0.5$
+- Set $P(Y)$ to be a uniform distribution with $P(Y=y_j)=0.5$
 
 In general, prior probability (human knowledge) is better for a small dataset because Frequentist Probability requires a large dataset.
 However, one clear disadvantage of Bayesian Probability is that based on personal belief, it could be wrong that I assumed `xs` and `ys` come from
