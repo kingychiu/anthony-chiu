@@ -1,0 +1,208 @@
+---
+title: 'Machine Learning Refresher: Sum rule and Product rule of Probability Theory'
+date: '2022-05-01'
+lastmod: '2022-05-01'
+tags:
+  [
+    'Sum Rule',
+    'Product Rule',
+    'Probability',
+    'Joint Probability',
+    'Marginal Probability',
+    'Conditional Probability',
+    'Frequentist Probability',
+    'Bayesian Probability',
+    'Test of Independence',
+  ]
+draft: false
+layout: PostSimple
+summary: 'Discuss the joint probability, marginal probability and conditional probability with Math equations and Python code example.'
+images: []
+authors: ['default']
+---
+
+## Overview
+
+Machine Learning Refresher is a series of articles that records my journey of relearning the fundamentals of Machine Learning.
+
+This article is a compiled version of the section 1.2 Probability Theory of the "Pattern Recognition and Machine Learning" book.
+I added two things here to enhance my understanding:
+
+- Emphasis on probability vs. probability distribution.
+- Python code to generate an example.
+
+## Probability and Probability Distribution
+
+Let's consider a random variable $X$ with $M$ discrete outcomes $\{x_1, x_2,..., x_i, ... x_M\}$.
+
+$P(X=x_i)$ denotes the probability of an event of $X$ being $x_i$. For example,
+if $X$ is the smartphone model we found in an experiment, $P(X=\mathbf{IPhoneSE})$ is the probability of finding
+an IPhoneSE smartphone in the experiment.
+
+Taking all outcomes into account, $P(X)$ denotes the probability distribution of $X$:
+
+- Probability Mass Function (Histogram) for discrete outcomes.
+- Probability Density Function for continuous outcomes.
+
+## Joint Probability
+
+Let's say there are two random variables ($X$, $Y$) in an experiment.
+
+- $X$ has M outcomes $\{x_1, x_2, ..., x_i, ..., x_M\}$.
+- $Y$ has L outcomes $\{y_1, y_2, ..., y_j, ..., y_L\}$.
+
+Then each observation in the experiment is a pair $(X=x_i, Y=y_j)$. $P(X=x_i, Y=y_j)$ denotes the joint probability of the event $(X=x_i, Y=y_j)$. For example, if $X$ and $Y$ are the smartphone model and the gender we
+found in an experiment, respectively, $P(X=\mathbf{IPhoneSE}, Y=\mathbf{Male})$ indicates the probability of finding a male with IPhone SE in the experiment.
+
+After obtaining the joint probability of each event/pair, we can get the joint probability distribution $P(X, Y)$.
+
+To illustrate this idea, the following code generates 1000 pairs of $(x, y)$:
+
+```python
+# Take 1000 samples
+xs = [np.random.randint(1, 5) for _ in range(1000)]
+ys = [np.random.randint(1, 3) for _ in range(1000)]
+# Count the (x, y) pairs and convert them to a dataframe
+joint_dist_df = pd.DataFrame.from_dict(Counter(zip(xs, ys)), orient="index").reset_index()
+joint_dist_df.columns = ["Event", "P(X, Y)"]
+joint_dist_df["X"] = [e[0] for e in joint_dist_df["Event"]]
+joint_dist_df["Y"] = [e[1] for e in joint_dist_df["Event"]]
+# Compute the joint probability
+joint_dist_df["P(X, Y)"] /= joint_dist_df["P(X, Y)"].sum()
+joint_dist_df
+```
+
+The above code generates the following dataframe:
+
+<div>
+  <img
+    alt="Joint Probability Distribution"
+    src="/static/images/probability-theory/joint-probs.png"
+    style={{ maxHeight: '400px', margin: 'auto' }}
+  />
+  <div className="text-center">Joint Probability Distribution $P(X,Y)$</div>
+</div>
+
+## Marginal Probability
+
+Based on the observations of $(X=x_i, Y=y_j)$ we can calculate the marginal probability $P(X=x_i)$ by
+marginalizing $Y$:
+
+$P(X=x_i) = \sum_{j} P(X=x_i, Y=y_j)$
+
+And apply this to all $X$'s outcomes we get the marginal probability distribution $P(X)$:
+
+$P(X) = \sum_{Y} P(X, Y)$
+
+This is called the sum rule of probability theory.
+
+The following code shows how to compute the marginal probability distribution:
+
+```python
+marginal_x_dist_df = joint_dist_df.groupby("X")["P(X, Y)"].sum().reset_index()
+marginal_x_dist_df.columns = ["X", "P(X)"]
+marginal_x_dist_df
+```
+
+The above code generates the following dataframe:
+
+<div>
+  <img
+    alt="Marginal Probability Distribution"
+    src="/static/images/probability-theory/marginal-probs.png"
+    style={{ maxHeight: '400px', margin: 'auto' }}
+  />
+  <div className="text-center">Marginal Probability Distribution $P(X)$</div>
+</div>
+
+## Conditional Probability
+
+If we filter the observations by a particular outcome (e.g., $X=x_i$), we can calculate the probabilities of
+observing $Y=y_j$ given the filtered observations ($X=x_i$). It is called Conditional Probability $P(Y=y_j|X=x_i)$
+
+The following code shows how to compute the conditional probability distribution $P(Y|X)$:
+
+```python
+for x_i in range(1, 5):
+    print("For x_i =", x_i)
+    # Filter obseravtions based on x_i
+    _df = joint_dist_df[joint_dist_df["X"]==x_i].copy()
+    _df = pd.merge(_df, marginal_x_dist_df, how="left", on="X")
+    # Calculate the conditional probabilites
+    _sum = _df["P(X, Y)"].sum()
+    _df["P(Y|X)"] = _df["P(X, Y)"] / _sum
+    display(_df)
+```
+
+The above code generates the following dataframe:
+
+<div>
+  <img
+    alt="Conditional Probability Distribution"
+    src="/static/images/probability-theory/conditional-probs.png"
+    style={{ maxHeight: '700px', margin: 'auto' }}
+  />
+  <div className="text-center">Conditional Probability Distribution $P(Y|X)$</div>
+</div>
+
+From the result we can also observe that the conditional probability $P(Y=y_j|X=x_j)$ can be calculated:
+
+$P(Y=y_j|X=x_i) = \frac{P(X=x_i, Y=y_j)}{P(X=x_i)}$
+
+And the conditional probability distribution can be written as:
+
+$P(Y|X) = \frac{P(X, Y)}{P(X)}$
+
+And, $P(X,Y)=P(Y|X)P(X)$ is called the product rule of probability theory.
+
+## Independence
+
+If two events $X=x_i$ and $Y=y_j$ are independent:
+
+- The conditional probability becomes $P(Y_j|X=x_i) = P(Y=y_j)$
+- The conditional probability distribution becomes $P(Y|X) = P(Y)$
+- The joint probability distribution becomes: $P(X, Y) = P(X) \times P(Y)$
+
+## Test of Independence
+
+In the Python coding example, we generate `xs` and `ys` uniformly and independently. But why we are not
+getting a perfect result of $P(X, Y) = P(X) \times P(Y)$?
+
+We can find the root cause by looking at the marginal probabilities of $X$ and $Y$. Ideally we should see $P(X=x_i)=0.25$ and $P(Y=y_j)=0.5$, but
+it is not the case.
+
+We can use the Chi-squared test to test if two categorical values are independent.
+
+Chi-squared test tests if two categories of a contingency table are dependent on each other or not.
+
+- The null hypothesis: `xs` and `ys` are independent.
+- The alternative hypothesis: `xs` and `ys` are dependent.
+
+```python
+from sklearn.feature_selection import chi2
+# The null hypothesis is that they are independent.
+# P <= 0.05: Reject the null hypothesis.
+# P > 0.05: Accept the null hypothesis.
+chi2(np.array(xs).reshape(-1, 1), np.array(ys).reshape(-1, 1))
+# > (array([0.88852322]), array([0.34587782]))
+```
+
+The test returns a P-value of 0.346; therefore, we cannot reject the null hypothesis that `xs` and `ys` are independent. So
+there is a problem in the process above. The probabilities obtained from counting are not entirely accurate.
+
+## Frequentist Probability and Bayesian Probability
+
+The entire discussion above is based on counting. It is called the Frequentist Probability.
+The Frequentist Probability requires many trials in an experiment to have an accurate probability distribution. In the code example, we only sampled 1000 pairs of $(X=x_i, Y=y_j)$, which is too small.
+If we increase the sample size, we can see the marginal probabilities will get closer to the ideal values.
+
+However, it is hard to produce the exact $P(X, Y) = P(X) \times P(Y)$ even with a very large number of trials. In this case, since we know `xs` and `ys` are generated from two
+independent processes, we can set $P(X=x_i)=0.25$ and $P(Y=y_j)=0.5$ manually instead. This is a perspective of Bayesian Probability.
+In Bayes' Theorem, $P(Y=y_i)$ is the prior probability; humans set that.
+
+- Set $P(X)$ to be a uniform distribution with $P(X=x_i)=0.25$
+- Set $P(Y)$ to be a uniform distribution with $P(Y=y_i)=0.5$
+
+In general, prior probability (human knowledge) is better for a small dataset because Frequentist Probability requires a large dataset.
+However, one clear disadvantage of Bayesian Probability is that based on personal belief, it could be wrong that I assumed `xs` and `ys` come from
+two independent processes. A bad `prior probability distribution` setup is a problem for Bayesian Probability.
