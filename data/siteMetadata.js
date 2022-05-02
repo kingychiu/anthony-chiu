@@ -25,6 +25,7 @@ const siteMetadata = {
     simpleAnalytics: false, // true or false
     umamiWebsiteId: '', // e.g. 123e4567-e89b-12d3-a456-426614174000
     googleAnalyticsId: 'G-33CLPMTCVS', // e.g. UA-000000-2 or G-XXXXXXX
+    hotjarSiteId: '2950522',
   },
   newsletter: {
     // supports mailchimp, buttondown, convertkit, klaviyo, revue
