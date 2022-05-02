@@ -31,6 +31,8 @@ I added two things here to enhance my understanding:
 - Emphasis on probability vs. probability distribution.
 - Python code to generate an example.
 
+<TOCInline exclude="Overview" toc={props.toc} asDisclosure />
+
 ## Probability and Probability Distribution
 
 Let's consider a random variable $X$ with $M$ discrete outcomes $\{x_1, x_2,..., x_i, ... x_M\}$.
@@ -51,11 +53,12 @@ Let's say there are two random variables ($X$, $Y$) in an experiment.
 - $X$ has M outcomes $\{x_1, x_2, ..., x_i, ..., x_M\}$.
 - $Y$ has L outcomes $\{y_1, y_2, ..., y_j, ..., y_L\}$.
 
-Then each observation in the experiment is a pair $(X=x_i, Y=y_j)$. $P(X=x_i, Y=y_j)$ denotes the joint probability of the event $(X=x_i, Y=y_j)$. For example, if $X$ and $Y$ are the smartphone model and the gender we
+Then each observation in the experiment is a pair of events $(X=x_i, Y=y_j)$. $P(X=x_i, Y=y_j)$ denotes the joint probability of two events, $(X=x_i)$ and $(Y=y_j)$, occurring at the same time.
+
+For example, if $X$ and $Y$ are the smartphone model and the gender we
 found in an experiment, respectively, $P(X=\mathbf{IPhoneSE}, Y=\mathbf{Male})$ indicates the probability of finding a male with IPhone SE in the experiment.
 
-After obtaining the joint probability of each event/pair, we can get the joint probability distribution $P(X, Y)$.
-
+After obtaining the joint probability of each $(X=x_i, Y=y_j)$ pair, we can get the joint probability distribution $P(X, Y)$.
 To illustrate this idea, the following code generates 1000 pairs of $(x, y)$:
 
 ```python
@@ -88,14 +91,21 @@ The above code generates the following dataframe:
 Based on the observations of $(X=x_i, Y=y_j)$ we can calculate the marginal probability $P(X=x_i)$ by
 marginalizing $Y$:
 
-$P(X=x_i) = \sum_{j} P(X=x_i, Y=y_j)$
+<div style={{ overflowX: 'auto' }}>$$ P(X=x_i) = \sum_{j} P(X=x_i, Y=y_j) $$</div>
 
-And apply this to all $X$'s outcomes we get the marginal probability distribution $P(X)$:
+For example, we can compute $P(X=\mathbf{IPhoneSE})$ by adding up the corresponding joint
+probabilites for each gender.
 
-$P(X) = \sum_{Y} P(X, Y)$
+<div style={{ overflowX: 'auto' }}>
+  $$ P(X=\mathbf{IPhoneSE}) = P(X=\mathbf{IPhoneSE}, Y=\mathbf{Male}) + P(X=\mathbf{IPhoneSE},
+  Y=\mathbf{Female}) $$
+</div>
 
-This is called the sum rule of probability theory.
+Applying this to all $X$'s outcomes we get the marginal probability distribution $P(X)$:
 
+<div style={{ overflowX: 'auto' }}>$$ P(X) = \sum_{Y} P(X, Y) $$</div>
+
+This is called the `sum rule of probability theory`.
 The following code shows how to compute the marginal probability distribution:
 
 ```python
@@ -147,13 +157,21 @@ The above code generates the following dataframe:
 
 From the result we can also observe that the conditional probability $P(Y=y_j|X=x_j)$ can be calculated:
 
-$P(Y=y_j|X=x_i) = \frac{P(X=x_i, Y=y_j)}{P(X=x_i)}$
+<div style={{ overflowX: 'auto' }}>
+  $$ P(Y=y_j|X=x_i) = \frac{P((X = x_i), (Y = y_j))}
+  {P((X = x_i))}
+  $$
+</div>
 
 And the conditional probability distribution can be written as:
 
-$P(Y|X) = \frac{P(X, Y)}{P(X)}$
+<div style={{ overflowX: 'auto' }}>
+  $$ P(Y|X) = \frac{P(X, Y)}
+  {P(X)}
+  $$
+</div>
 
-And, $P(X,Y)=P(Y|X)P(X)$ is called the product rule of probability theory.
+And, $P(X,Y)=P(Y|X)P(X)$ is called the `product rule of probability theory`.
 
 ## Independence
 

@@ -44,7 +44,7 @@ export default function PostLayout({ frontMatter, authorDetails, next, prev, chi
             </div>
           </header>
           <div
-            className="divide-y divide-gray-200 pb-8 text-justify dark:divide-gray-700 xl:divide-y-0 "
+            className="divide-y divide-gray-200 pb-8 dark:divide-gray-700 md:text-justify xl:divide-y-0"
             style={{ gridTemplateRows: 'auto 1fr' }}
           >
             <div className="divide-y divide-gray-200 dark:divide-gray-700 xl:col-span-3 xl:row-span-2 xl:pb-0">
