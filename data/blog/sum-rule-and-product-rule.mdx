@@ -269,13 +269,13 @@ $$
 - $P(X=x_i)$ is the probability of finding the evidence in general. It normalize the likelihood $P(X=x_i|Y=y_j)$.
 - $P(Y=y_j|X=x_i)$ is the posterior probability we want to calculate after seeing an evidence $(X=x_i)$.
 
-In-terms probability:
+In-terms probability,
 
-- If $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)} > 1$, $P(Y=y_j|X=x_i) > P(Y=y_j)$. This indicates it is more likely to find the evidence $(X=x_i)$ given $(Y=y_j)$. This shows the evidence $(X=x_i)$ is for $(Y=y_j)$.
+- If $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)} > 1$, $P(Y=y_j|X=x_i) > P(Y=y_j)$. This shows the evidence $(X=x_i)$ is for $(Y=y_j)$.
 - If $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)} = 0$, $P(Y=y_j|X=x_i) = P(Y=y_j)$. This indicates $(X=x_i)$ and $(Y=y_j)$ are independent.
-- If $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)} < 1$, $P(Y=y_j|X=x_i) < P(Y=y_j)$. This indicates it is less likely to find the evidence $(X=x_i)$ given $(Y=y_j)$. There might be another outcomes of $X$ that is for $(Y=y_j)$.
+- If $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)} < 1$, $P(Y=y_j|X=x_i) < P(Y=y_j)$. There might be another outcomes of $X$ that is for $(Y=y_j)$.
 
-With $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)}$, we can update our prior personal belief $P(Y=y_j)$.
+Therefore, $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)}$ can be understood as the support of the evidence for our target.
 
 ## TODOs
 
