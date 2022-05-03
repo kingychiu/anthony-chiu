@@ -1,5 +1,5 @@
 ---
-title: 'Machine Learning Refresher: Sum rule and Product rule of Probability Theory'
+title: "Machine Learning Refresher: Sum rule, Product rule and Bayes' theorem"
 date: '2022-05-01'
 lastmod: '2022-05-01'
 tags:
@@ -13,6 +13,7 @@ tags:
     'Frequentist Probability',
     'Bayesian Probability',
     'Test of Independence',
+    'Bayes theorem',
   ]
 draft: false
 layout: PostSimple
@@ -48,7 +49,7 @@ Taking all outcomes into account, $P(X)$ denotes the probability distribution of
 
 ## Joint Probability
 
-Let's say there are two random variables ($X$, $Y$) in an experiment.
+Let's say there are two random variables $(X, Y)$ in an experiment.
 
 - $X$ has M outcomes $\{x_1, x_2, ..., x_i, ..., x_M\}$.
 - $Y$ has L outcomes $\{y_1, y_2, ..., y_j, ..., y_L\}$.
@@ -134,7 +135,7 @@ The above code generates the following dataframe:
 ## Conditional Probability
 
 If we filter the observations by a particular outcome (e.g., $X=x_i$), we can calculate the probabilities of
-observing $Y=y_j$ given the filtered observations ($X=x_i$). It is called Conditional Probability $P(Y=y_j|X=x_i)$
+observing $Y=y_j$ given the filtered observations $(X=x_i)$. It is called Conditional Probability $P(Y=y_j|X=x_i)$
 
 The following code shows how to compute the conditional probability distribution $P(Y|X)$:
 
@@ -246,3 +247,37 @@ counting observations or use the following theorical values:
 In general, prior probability (human knowledge) is better for a small dataset because Frequentist Probability requires a large dataset.
 However, one clear disadvantage of Bayesian Probability is that based on personal belief, it could be wrong that I assumed `xs` and `ys` come from
 two independent processes. A bad `prior probability distribution` setup is a problem for Bayesian Probability.
+
+## Bayes' theorem
+
+Recall the `product rule` $P(X=x_i,Y=y_j)=P(Y=y_j|X=x_i)P(X=x_i)$, since joint probability distribution is symmetrical
+$P(X=x_i,Y=y_j) = P(Y=y_j,X=x_i)$, we can deduce the Bayes' theorem like this:
+
+$$
+P(Y=y_j|X=x_i)P(X=x_i) = P(X=x_i|Y=y_j)P(Y=y_j)
+$$
+
+$$
+P(Y=y_j|X=x_i) = \frac{P(X=x_i|Y=y_j)P(Y=y_j)}{P(X=x_i)}
+$$
+
+- $(Y=y_j)$ is the event we want to analyze.
+- $(X=x_i)$ is the event we takes as an evidence to support the occurance of $(Y=y_j)$.
+- $P(Y=y_j)$ is the prior probability of $(Y=y_j)$ without knowing $(X=x_i)$ as an evidence.
+  It is the best guess of the probability of $(Y=y_j)$ occurring without new information.
+- $P(X=x_i|Y=y_j)$ is the likelihood. it can be written as $L(Y=y_j|X=x_i)$.
+  It is the probability of finding the evidence $(X=x_i)$ given the $(Y=y_j)$ has already occured.
+- $P(X=x_i)$ is the probability of finding the evidence in general. It normalize the likelihood $P(X=x_i|Y=y_j)$.
+- $P(Y=y_j|X=x_i)$ is the posterior probability we want to calculate after seeing an evidence $(X=x_i)$.
+
+In Bayesian Probability, $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)}$ measures the support of an evidence $(X=x_i)$ for $(Y=y_j)$.
+
+- If $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)} > 1$, $P(Y=y_j|X=x_i) > P(Y=y_j)$. This indicates it is more likely to find the evidence $(X=x_i)$ given $(Y=y_j)$. This shows the evidence $(X=x_i)$ is for $(Y=y_j)$.
+- If $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)} = 0$, $P(Y=y_j|X=x_i) = P(Y=y_j)$. This indicates $(X=x_i)$ and $(Y=y_j)$ are independent.
+- If $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)} < 1$, $P(Y=y_j|X=x_i) < P(Y=y_j)$. This indicates it is less likely to find the evidence $(X=x_i)$ given $(Y=y_j)$. There might be another outcomes of $X$ that is for $(Y=y_j)$.
+
+With $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)}$, we can update our prior personal belief $P(Y=y_j)$.
+
+**TODO**: Example for Bayesian update.
+
+**TODO**: Dive deeper into Bayesian inference.
