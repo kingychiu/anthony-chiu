@@ -63,9 +63,9 @@ After obtaining the joint probability of each $(X=x_i, Y=y_j)$ pair, we can get 
 To illustrate this idea, the following code generates 1000 $(X=x_i, Y=y_j)$ pairs (`xs` and `ys`):
 
 ```python
-# Take 1000 samples between [1, 4)
+# Take 1000 samples between [1, 5)
 xs = [np.random.randint(1, 5) for _ in range(1000)]
-# Take 1000 samples between [1, 2)
+# Take 1000 samples between [1, 3)
 ys = [np.random.randint(1, 3) for _ in range(1000)]
 # Count the (x, y) pairs and convert them to a dataframe
 joint_dist_df = pd.DataFrame.from_dict(Counter(zip(xs, ys)), orient="index").reset_index()
@@ -197,9 +197,9 @@ if $X=x_i$ and $Y=y_j$ are independent.
 ## Test of Independence
 
 ```python
-# Take 1000 samples between [1, 4)
+# Take 1000 samples between [1, 5)
 xs = [np.random.randint(1, 5) for _ in range(1000)]
-# Take 1000 samples between [1, 2)
+# Take 1000 samples between [1, 3)
 ys = [np.random.randint(1, 3) for _ in range(1000)]
 ```
 
