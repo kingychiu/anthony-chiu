@@ -265,12 +265,11 @@ $$
 - $(X=x_i)$ is the event we takes as an evidence to support the occurance of $(Y=y_j)$.
 - $P(Y=y_j)$ is the prior probability of $(Y=y_j)$ without knowing $(X=x_i)$ as an evidence.
   It is the best guess of the probability of $(Y=y_j)$ occurring without new information.
-- $P(X=x_i|Y=y_j)$ is the likelihood. it can be written as $L(Y=y_j|X=x_i)$.
-  It is the probability of finding the evidence $(X=x_i)$ given the $(Y=y_j)$ has already occured.
+- $P(X=x_i|Y=y_j)$ is the likelihood. it can be written as $L(Y=y_j|X=x_i)$.It is the probability of finding the evidence $(X=x_i)$ given the $(Y=y_j)$ has already occured.
 - $P(X=x_i)$ is the probability of finding the evidence in general. It normalize the likelihood $P(X=x_i|Y=y_j)$.
 - $P(Y=y_j|X=x_i)$ is the posterior probability we want to calculate after seeing an evidence $(X=x_i)$.
 
-In Bayesian Probability, $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)}$ measures the support of an evidence $(X=x_i)$ for $(Y=y_j)$.
+In-terms probability:
 
 - If $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)} > 1$, $P(Y=y_j|X=x_i) > P(Y=y_j)$. This indicates it is more likely to find the evidence $(X=x_i)$ given $(Y=y_j)$. This shows the evidence $(X=x_i)$ is for $(Y=y_j)$.
 - If $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)} = 0$, $P(Y=y_j|X=x_i) = P(Y=y_j)$. This indicates $(X=x_i)$ and $(Y=y_j)$ are independent.
@@ -278,6 +277,7 @@ In Bayesian Probability, $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)}$ measures the support 
 
 With $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)}$, we can update our prior personal belief $P(Y=y_j)$.
 
-**TODO**: Example for Bayesian update.
+## TODOs
 
-**TODO**: Dive deeper into Bayesian inference.
+- Example for Bayesian update.
+- Dive deeper into Bayesian inference.
