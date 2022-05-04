@@ -1,5 +1,5 @@
 ---
-title: "Machine Learning Refresher: Sum rule, Product rule and Bayes' theorem"
+title: 'ML Refresher: Probability Theory, Maximum Likelihood Estimate and Maximum A Posterior'
 date: '2022-05-01'
 lastmod: '2022-05-01'
 tags:
@@ -14,6 +14,8 @@ tags:
     'Bayesian Probability',
     'Test of Independence',
     'Bayes theorem',
+    'Maximum Likelihood Estimate (MLE)',
+    'Maximum A Posterior (MAP)',
   ]
 draft: false
 layout: PostSimple
@@ -26,7 +28,13 @@ authors: ['default']
 
 Machine Learning Refresher is a series of articles that records my journey of relearning the fundamentals of Machine Learning.
 
-This article is a compiled version of the section 1.2 Probability Theory of the "Pattern Recognition and Machine Learning" book.
+This article is a compiled version of
+
+- Section 1.2 Probability Theory of the "Pattern Recognition and Machine Learning" book.
+- MSBD5012 Machine Learning course materials
+- Other online resources
+- My own understandings
+
 I added two things here to enhance my understanding:
 
 - Emphasis on probability vs. probability distribution.
@@ -34,32 +42,51 @@ I added two things here to enhance my understanding:
 
 <TOCInline exclude="Overview" toc={props.toc} asDisclosure />
 
+## Sample Space and Event of a Random Experiment
+
+A `Random Experiment` is a process with uncertain outcomes. A set of all the possible
+outcomes of the random experiment is called the `Sample Space` $\Omega$.
+
+- If rolling one dice is the random experiment, the sample space $\Omega = \{1, 2, 3, 4, 5, 6\}$.
+
+A `Random Variable` is a function that takes a sample space and maps it to a new sample space:
+
+- The easiest one is the identical (1-to-1) function, let the `Random Variable` $X$ be the outcomes (the sample space) of rolling one dice (the random experiment).
+  $X$ takes values $\Omega_{X} = \{1, 2, 3, 4, 5, 6\}$, as well.
+
+A `Event` is a subset of a sample space $\Omega$:
+
+- $(X=2)$ describes an `Event` subset $\Omega_{X=2}=\{2\}$, and it describes we got a value $2$ from the random experiment of rolling one dice.
+- $(X=\mathbf{Odd})$ describes an `Event` subset $\Omega_{X=\mathbf{Odd}}=\{1, 3, 5\}$, and it describes we got a odd number value from the random experiment of rolling one dice.
+
+A `Composed Experiment` describes the repetitions of the same random experiment, and each repetition can be called a `trail`.
+
 ## Probability and Probability Distribution
 
-Let's consider a random variable $X$ with $M$ discrete outcomes $\{x_1, x_2,..., x_i, ... x_M\}$.
+Let's consider a random variable $X$ with $M$ discrete outcomes $\Omega_{X}=\{x_1, x_2,..., x_i, ... x_M\}$.
 
-$P(X=x_i)$ denotes the probability of an event of $X$ being $x_i$. For example,
-if $X$ is the smartphone model we found in an experiment, $P(X=\mathbf{IPhoneSE})$ is the probability of finding
-an IPhoneSE smartphone in the experiment.
+$P(X=x_i)$ denotes the `probability` of an event of $X$ being $x_i$. For example,
+if $X$ is the smartphone model we found in a random experiment, $P(X=\mathbf{IPhoneSE})$ is the probability of finding
+an IPhoneSE smartphone in the random experiment.
 
-Taking all outcomes into account, $P(X)$ denotes the probability distribution of $X$:
+Taking all outcomes into account, $P(X)$ denotes the `probability distribution` of $X$:
 
 - Probability Mass Function (Histogram) for discrete outcomes.
 - Probability Density Function for continuous outcomes.
 
 ## Joint Probability
 
-Let's say there are two random variables $(X, Y)$ in an experiment.
+Let's say there are two random variables $(X, Y)$ in a random experiment.
 
-- $X$ has M outcomes $\{x_1, x_2, ..., x_i, ..., x_M\}$.
-- $Y$ has L outcomes $\{y_1, y_2, ..., y_j, ..., y_L\}$.
+- $X$ has M outcomes $\Omega_{X} =\{x_1, x_2, ..., x_i, ..., x_M\}$.
+- $Y$ has L outcomes $\Omega_{Y} =\{y_1, y_2, ..., y_j, ..., y_L\}$.
 
-Then each observation in the experiment is a pair of events $(X=x_i, Y=y_j)$. $P(X=x_i, Y=y_j)$ denotes the joint probability of two events, $(X=x_i)$ and $(Y=y_j)$, occurring at the same time.
+Then each observation in the random experiment is a pair of events $(X=x_i, Y=y_j)$. $P(X=x_i, Y=y_j)$ denotes the `joint probability` of two events, $(X=x_i)$ and $(Y=y_j)$, occurring at the same time.
 
 For example, if $X$ and $Y$ are the smartphone model and the gender we
-found in an experiment, respectively, $P(X=\mathbf{IPhoneSE}, Y=\mathbf{Male})$ indicates the probability of finding a male with IPhone SE in the experiment.
+found in an random experiment, respectively, $P(X=\mathbf{IPhoneSE}, Y=\mathbf{Male})$ indicates the probability of finding a male with IPhone SE in the random experiment.
 
-After obtaining the joint probability of each $(X=x_i, Y=y_j)$ pair, we can get the joint probability distribution $P(X, Y)$.
+After obtaining the joint probability of each $(X=x_i, Y=y_j)$ pair, we can get the `joint probability distribution` $P(X, Y)$.
 To illustrate this idea, the following code generates 1000 $(X=x_i, Y=y_j)$ pairs (`xs` and `ys`):
 
 ```python
@@ -90,7 +117,7 @@ The above code generates the following dataframe:
 
 ## Marginal Probability
 
-Based on the observations of $(X=x_i, Y=y_j)$ we can calculate the marginal probability $P(X=x_i)$ by
+Based on the observations of $(X=x_i, Y=y_j)$ we can calculate the `marginal probability` $P(X=x_i)$ by
 marginalizing $Y$:
 
 $$
@@ -98,7 +125,7 @@ P(X=x_i) = \sum_{j} P(X=x_i, Y=y_j)
 $$
 
 For example, if $X$ and $Y$ are the smartphone model and the gender we
-found in an experiment, respectively. We can compute $P(X=\mathbf{IPhoneSE})$ by adding up the corresponding joint
+found in a random experiment, respectively. We can compute $P(X=\mathbf{IPhoneSE})$ by adding up the corresponding joint
 probabilites for each gender.
 
 $$
@@ -106,7 +133,7 @@ P(X=\mathbf{IPhoneSE}) = P(X=\mathbf{IPhoneSE}, Y=\mathbf{Male}) + P(X=\mathbf{I
 Y=\mathbf{Female})
 $$
 
-Applying this to all $X$'s outcomes we get the marginal probability distribution $P(X)$:
+Applying this to all $X$'s outcomes we get the `marginal probability distribution` $P(X)$:
 
 $$
 P(X) = \sum_{Y} P(X, Y)
@@ -135,9 +162,9 @@ The above code generates the following dataframe:
 ## Conditional Probability
 
 If we filter the observations by a particular outcome (e.g., $X=x_i$), we can calculate the probabilities of
-observing $Y=y_j$ given the filtered observations $(X=x_i)$. It is called Conditional Probability $P(Y=y_j|X=x_i)$
+observing $Y=y_j$ given the filtered observations $(X=x_i)$. It is called the `conditional probability` $P(Y=y_j|X=x_i)$
 
-The following code shows how to compute the conditional probability distribution $P(Y|X)$:
+The following code shows how to compute the `conditional probability distribution` $P(Y|X)$:
 
 ```python
 for x_i in range(1, 5):
@@ -231,7 +258,7 @@ there is a problem in the process above: the probabilities obtained from countin
 ## Frequentist Probability and Bayesian Probability
 
 The entire discussion above is based on counting observations. It is called the Frequentist Probability.
-The Frequentist Probability requires many trials in an experiment to have an accurate probability distribution. In the code example, we only sampled 1000 $(X=x_i, Y=y_j)$ pairs (`xs` and `ys`), which is too small.
+The Frequentist Probability requires many repetitions of a random experiment to have an accurate probability distribution. In the code example, we only sampled 1000 $(X=x_i, Y=y_j)$ pairs (`xs` and `ys`), which is too small.
 If we increase the sample size, we can see the marginal probabilities will get closer to the ideal values.
 
 However, it is hard to produce the exact $P(X, Y) = P(X) \times P(Y)$ even with a very large number of trials. In this case, since we know `xs` and `ys` are generated from two
@@ -280,7 +307,54 @@ Therefore, $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)}$ can be understood as the support of
 - If $P(Y=y_j|X=x_i) = P(Y=y_j)$, $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)} = 1$. This indicates $(X=x_i)$ and $(Y=y_j)$ are independent.
 - If $P(Y=y_j|X=x_i) < P(Y=y_j)$, $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)} < 1$. This shows the evidence $(X \neq x_i)$ is for $(Y=y_j)$.
 
-## TODOs
+**TODOs:**
 
 - Example for Bayesian update.
 - Dive deeper into Bayesian inference.
+
+## Estimating a Model's Parameter
+
+TODO
+
+{/\*
+
+### Model's Parameter Distribution
+
+Let's say we have observed a dataset $D$. We want to estimate a model's parameter $(W=w)$ that is best fit to the
+dataset $D$ from all possible parameters $W$.
+
+- $\Omega_{W} = \mathbb{R}$
+- The probability of $w$ being the best: $P(W=w) \in [0, 1]$
+
+### Dataset Distribution
+
+In terms of supervised learning, the dataset distribution $D$ contains a input distribution $X$
+and a target distribution $T$. For a dataset $D$ contains $N$ samples, the i-th data sample $(D=d_i)$ is a pair of $(X=x_i, T=t_i)$:
+
+- $\Omega_{D} = \{d_1, d_2, ..., d_i, ... d_N\}$
+
+- $\Omega_{D} = \{(x_1, t_1), (x_2, t_2), ..., (x_i, t_i), ... (x_N, t_N)\}$
+
+- The probability of getting a particular sample $d_i$ from the dataset $D$: $P(D=d_i) \in [0, 1]$ during training.
+
+- $P(D=d_i)$ is a constant, for example $P(D=d_i)=\frac{1}{N}$ if there is no special sampling in the training procedure.
+
+### Prediction Distribution
+
+Let's $Y$ be a new random variable that takes $X$ and $W$ and map them to the model's predictions.
+
+- $\Omega_{Y} = \{y_1, y_2, ..., y_i, ... y_N\}$
+- For regression: $\Omega_{y_i} = \mathbb{R}$
+- For binary classification: $\Omega_{y_i} = \{1, 2\}$
+- The prediction distribution for all $N$ samples and all possible $w$ within $W$: $P(Y|X,W)$
+- The prediction distribution for all $N$ samples with a optimized $w$: $P(Y|X,W=w)$
+  - For a 10-class classification task, $P(Y|X,W=w)$ is a matrix with shape $(N \times 10)$.
+- The prediction distribution for i-th data sample with a optimized $w$: $P(Y=y_i|X=x_i,W=w)$
+  - For a 10-class classification task, $P(Y=y_i|X=x_i,W=w)$ is a vector with shape $10$.
+
+**TODOs**
+
+- MAP
+- MLE
+
+\*/}
