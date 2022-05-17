@@ -205,16 +205,24 @@ def get_adjacency_matrix(inps):
 
 The Graph Convolutional operations are done with the `GraphConv` layer (it is now renamed as `GCNConv`) from the Keras Spektral package[^6]. This method originated from this paper[^8].
 
-The following equation shows a `GraphConv Layer` with $C$ channels applying on a sequence $X \in \Re^{S \times D}$ and a adjacency matrix $A \in \Re^{S \times S}$, where $S$ and $D$ denotes the sequence length and the feature dimension respectively.
+To compute the output of a `GraphConv Layer` with $c$ channels applying on a sequence $\mathbf{X} \in \Re^{s \times d}$ and a adjacency matrix $\mathbf{A} \in \Re^{s \times s}$, we firstly need to compute
+$\mathbf{\hat{A}} \in \Re^{s \times s}$:
 
 <div style={{overflowX: "auto"}}>
 $$
-\underset{S \times C}{\mathbf{GraphConv}(X, A)} = \underset{S \times S}{A} \times \underset{S \times D}{X}\times \underset{D \times C}{W} + \underset{C}{B}
+\mathbf{\hat{A}} = \mathbf{A} + \mathbf{I}
+$$
+</div>
+Then:
+<div style={{overflowX: "auto"}}>
+$$
+\underset{s \times c}{\mathbf{GraphConv}(\mathbf{X}, \mathbf{A})} = \mathbf{\hat{D}^{-\frac{1}{2}}} \cdot \mathbf{\hat{A}} \cdot \mathbf{\hat{D}^{-\frac{1}{2}}} \cdot \mathbf{X} \cdot \mathbf{W} + \mathbf{b}
 $$
 </div>
 
-Where $w$ and $b$ are the learning weights.
+Where $\mathbf{W}$ and $\mathbf{b}$ are the learning weights, and $s$ and $d$ denotes the sequence length and the feature dimension respectively.
 
+{/\*
 The learning weights are not dependent on the sequence length. They are sharable weights for each sequence position. To understand this operation, let's unfold each matrix multiplication step by step.
 
 - Let $H_{1_{(s,c)}} = (X \times W)_{(s,c)} = \sum_{d=1}^{D} X_{(s,d)}W_{(d,c)}$
@@ -224,12 +232,13 @@ The learning weights are not dependent on the sequence length. They are sharable
   - Two unpaired bases with position $s_1$ and $s_2$ have a zero or close to zero $A_{(s_1,s_2)}$; therefore the information from $H_{1_{(s2, c)}}$ is blocked from propagating to $H_{2_{(s1, c)}}$.
   - Two paired bases with position $s_1$ and $s_2$ have a high $A_{(s_1,s_2)}$ value; therefore the information from $H_{1_{(s2, c)}}$ is propagating to $H_{2_{(s1, c)}}$.
   - Therefore concatenating the $X$ with $\mathbf{GraphConv}(X, A)$ helps construct a new hidden state containing both the original sequence position information and the paired position information.
+    \*/}
 
 ### RNN layers for longer range propagation
 
 So far, the information has been propagated via local windows and pairing connections. At the end of the model, we need a way to propagate the information further. A perfect candidate here is `Gated Recurrent Unit Layer (GRU)` and `Long Short Term Memory Layer (LSTM)`
 
-Similar to Conv and GraphConv layers, GRU and LSTM learn a set of weights that are not dependent on the sequence position. Therefore the model can make inferences to sequences with variable lengths. Therefore concatenating the X with GraphConv(X, A) helps construct a new hidden state containing the original sequence position information and the paired position information.
+Similar to Conv and GraphConv layers, GRU and LSTM learn a set of weights that are not dependent on the sequence position. Therefore the model can make inferences to sequences with variable lengths. Therefore concatenating the $\mathbf{X}$ with ${\mathbf{GraphConv}(\mathbf{X}, \mathbf{A})}$ helps construct a new hidden state containing the original sequence position information and the paired position information.
 
 ### 1D Spatial Dropout
 
