@@ -209,16 +209,14 @@ The following steps explain the mechanics of a `GraphConv Layer` with $c$ channe
 where $S$ and $D$ denotes the sequence length and the feature dimension respectively:
 
 We firstly need to add self-loops adjancency $\mathbf{I}  \in \mathbb{R}^{S \times S}$ to $\mathbf{A}$:
-
 <div style={{overflowX: "auto"}}>
 $$
 \underset{S \times S}{\mathbf{\hat{A}}} = \underset{S \times S}{\mathbf{A}} + \underset{S \times S}{\mathbf{I}}
 $$
 </div>
 
-Next we compute the degree matrix $\mathbf{\hat{D}} \in \mathbb{R}^{S \times S}$ of $\mathbf{\hat{A}}$,
+Next we compute the degree matrix $\mathbf{\hat{D}} \in \mathbb{R}^{S \times S}$ of $\mathbf{\hat{A}}$, 
 the degree matrix is a diagonal matrix with its diagnoal values defined as:
-
 <div style={{overflowX: "auto"}}>
 $$
 \hat{D}_{ii} = \sum_{j}{\hat{A}_{ij}}
@@ -226,7 +224,6 @@ $$
 </div>
 
 Finally, to compute the output of a `GraphConv Layer`:
-
 <div style={{overflowX: "auto"}}>
 $$
 \underset{S \times C}{\mathbf{GraphConv}(\mathbf{X}, \mathbf{A})} = f_{activation}(\mathbf{\hat{D}^{-\frac{1}{2}}} \cdot \mathbf{\hat{A}} \cdot \mathbf{\hat{D}^{-\frac{1}{2}}} \cdot \mathbf{X} \cdot \mathbf{W} + \mathbf{b})
@@ -235,10 +232,9 @@ $$
 
 Where $\mathbf{W}$ and $\mathbf{b}$ are the learning weights.
 
-{/\*The learning weights are not dependent on the sequence length. They are sharable weights for each sequence position. To understand this operation, let's unfold each matrix multiplication step by step.
+{/*The learning weights are not dependent on the sequence length. They are sharable weights for each sequence position. To understand this operation, let's unfold each matrix multiplication step by step.
 
 - Let's consider $\mathbf{H} = \mathbf{X} \cdot \mathbf{W}$, with value: $H_{s, c} = \sum_{d=1}^{D} X_{s,d}W_{d,c}$
-
   - So, the model learns a weight $\mathbf{W}$ that filters / aggregates the original feature dimension $D$ into the channel dimension $C$.
 
 - Next let's take a look at the term $\mathbf{\hat{D}^{-\frac{1}{2}}} \cdot \mathbf{\hat{A}} \cdot \mathbf{\hat{D}^{-\frac{1}{2}}}$
@@ -248,8 +244,7 @@ Where $\mathbf{W}$ and $\mathbf{b}$ are the learning weights.
   - Two unpaired bases with position $s_1$ and $s_2$ have a zero or close to zero $A_{(s_1,s_2)}$; therefore the information from $H_{1_{(s2, c)}}$ is blocked from propagating to $H_{2_{(s1, c)}}$.
   - Two paired bases with position $s_1$ and $s_2$ have a high $A_{(s_1,s_2)}$ value; therefore the information from $H_{1_{(s2, c)}}$ is propagating to $H_{2_{(s1, c)}}$.
   - Therefore concatenating the $X$ with $\mathbf{GraphConv}(X, A)$ helps construct a new hidden state containing both the original sequence position information and the paired position information.
-    \*/}
-
+*/}
 ### RNN layers for longer range propagation
 
 So far, the information has been propagated via local windows and pairing connections. At the end of the model, we need a way to propagate the information further. A perfect candidate here is `Gated Recurrent Unit Layer (GRU)` and `Long Short Term Memory Layer (LSTM)`
