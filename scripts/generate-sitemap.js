@@ -9,9 +9,11 @@ const siteMetadata = require('../data/siteMetadata')
   const pages = await globby([
     'pages/*.js',
     'pages/*.tsx',
+    '!pages/tags.js',
+    '!pages/projects.js',
     'data/blog/**/*.mdx',
     'data/blog/**/*.md',
-    'public/tags/**/*.xml',
+    '!public/tags/**/*.xml',
     '!pages/_*.js',
     '!pages/_*.tsx',
     '!pages/api',
