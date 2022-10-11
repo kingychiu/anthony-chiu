@@ -28,6 +28,7 @@ const CommonSEO = ({ title, description, ogType, ogImage, twImage, canonicalUrl 
         rel="canonical"
         href={canonicalUrl ? canonicalUrl : `${siteMetadata.siteUrl}${router.asPath}`}
       />
+      <meta name="google-site-verification" content="IntjWQmSOGdluk55wSN98Bz7vqQIn5Po5GhUt5sJh24" />
     </Head>
   )
 }
