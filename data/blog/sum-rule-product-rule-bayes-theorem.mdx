@@ -228,12 +228,12 @@ ys = [np.random.randint(1, 3) for _ in range(1000)]
 In the Python coding example, we generated 1000 $(X=x_i, Y=y_j)$ pairs (`xs` and `ys`) uniformly and independently. But why we are not
 getting a perfect result of $P(X, Y) = P(X) \times P(Y)$?
 
-We can find the root cause by looking at the marginal probabilities of $X$ and $Y$. Ideally we should see $P(X=x_i)=0.25$ and $P(Y=y_j)=0.5$, but
-it is not the case.
+Let's find out the reason by looking at the marginal probabilities $P(X)$ and $P(Y)$. Ideally we should see $P(X=x_i)=0.25$ and $P(Y=y_j)=0.5$ from the code output, but
+it is not the case. Actually, if we increase the sample size, $P(X)$ and $P(Y)$ will get closer to the ideal values.
 
-We can use the Chi-squared test to test if two categorical values are independent.
+So there is a problem with counting observations: the probabilities obtained from counting observations are not entirely accurate.
 
-Chi-squared test tests if two categorical variables are dependent on each other or not.
+We can also use the Chi-squared test to test if two categorical values are independent. Chi-squared test tests if two categorical variables are dependent on each other or not.
 
 - The null hypothesis: $(X=x_i)$ and $(Y=y_j)$ are independent.
 - The alternative hypothesis: $(X=x_i)$ and $(Y=y_j)$ are dependent.
@@ -247,16 +247,15 @@ chi2(np.array(xs).reshape(-1, 1), np.array(ys).reshape(-1, 1))
 # > (array([0.88852322]), array([0.34587782]))
 ```
 
-The test returns a P-value of 0.346; therefore, we cannot reject the null hypothesis that $(X=x_i)$ and $(Y=y_j)$ are independent. So
-there is a problem in the process above: the probabilities obtained from counting observations are not entirely accurate.
+The test returns a P-value of 0.346; therefore, we cannot reject the null hypothesis that $(X=x_i)$ and $(Y=y_j)$ are independent.
 
 ## Frequentist Probability and Bayesian Probability
 
 The entire discussion above is based on counting observations. It is called the Frequentist Probability.
-The Frequentist Probability requires many repetitions of a random experiment to have an accurate probability distribution. In the code example, we only sampled 1000 $(X=x_i, Y=y_j)$ pairs (`xs` and `ys`), which is too small.
-If we increase the sample size, we can see the marginal probabilities will get closer to the ideal values.
+The Frequentist Probability requires many repetitions of a random experiment to have an accurate probability distribution. In the code example, we only sampled 1000 $(X=x_i, Y=y_j)$ pairs (`xs` and `ys`), which is a small sample size.
+If we increase the sample size, we can see the marginal probabilities will get closer to the ideal values. However, it is hard to show the exact result of $P(X, Y) = P(X) \times P(Y)$ in code even with a very large number of trials.
 
-However, it is hard to produce the exact $P(X, Y) = P(X) \times P(Y)$ even with a very large number of trials. In this case, since we know `xs` and `ys` are generated from two
+Instead, since we know `xs` and `ys` are generated from two
 independent processes, we can set $P(X=x_i)=0.25$ and $P(Y=y_j)=0.5$ manually instead. This is a perspective of Bayesian Probability.
 In Bayes' Theorem, $P(Y=y_i)$ is the prior probability, which is set by humans.
 
@@ -296,8 +295,8 @@ From Wikipedia:
 
 > The likelihood function (often simply called the likelihood) is the joint probability of the observed data viewed as a function of the parameters of the chosen statistical model.
 
-Let's say we have observed a dataset $\bold{D}$. In that dataset there are $N$ samples. We want to estimate a model's parameter $(\bold{W}=\bold{w})$ that is best fit to the
-dataset $\bold{D}$ from all possible parameters. The likelihood $L(\bold{W}=\bold{w}|\bold{D})$ is the measure of how likely one can observe this dataset $\bold{D}$ given $\bold{W}={w}$ is the correct $P(\bold{D}|\bold{W}=\bold{w})$.
+Let's say we have observed a dataset $\bold{D}$. In that dataset there are $N$ samples. We want to estimate a model's parameter $\bold{w}$ that is the best fit to the
+dataset $\bold{D}$ from all possible parameters $\bold{W}$. The likelihood $L(\bold{W}=\bold{w}|\bold{D})$ is the measure of how likely one can observe this dataset $\bold{D}$ given $\bold{W}=\bold{w}$ is the correct $P(\bold{D}|\bold{W}=\bold{w})$.
 
 ## Maximum Likelihood Estimation
 
@@ -323,5 +322,5 @@ $$
 The objective is also equivalent to maximize the log-likelihood:
 
 $$
-\bold{\hat{w}} = \argmax_{\bold{w}\in\bold{W}}{\prod_{i=1}^{N} P(\bold{x_i}|\bold{W}=\bold{w})} = \sum_{i=1}^{N}{\ln  P(\bold{x_i}|\bold{W}=\bold{w})}
+\bold{\hat{w}} = \argmax_{\bold{w}\in\bold{W}}{P(\bold{D}|\bold{W}=\bold{w})} = \argmax_{\bold{w}\in\bold{W}}\sum_{i=1}^{N}{\ln  P(\bold{x_i}|\bold{W}=\bold{w})}
 $$
