@@ -16,6 +16,7 @@ tags:
     'Bayes theorem',
     'Maximum Likelihood Estimate (MLE)',
     'Maximum A Posterior (MAP)',
+    'Likelihood',
   ]
 draft: false
 layout: PostSimple
@@ -33,12 +34,6 @@ This article is a compiled version of
 - Section 1.2 Probability Theory of the "Pattern Recognition and Machine Learning" book.
 - MSBD5012 Machine Learning course materials
 - Other online resources
-- My own understandings
-
-I added two things here to enhance my understanding:
-
-- Emphasis on probability vs. probability distribution.
-- Python code to generate an example.
 
 <TOCInline exclude="Overview" toc={props.toc} asDisclosure />
 
@@ -288,13 +283,6 @@ $$
 P(Y=y_j|X=x_i) = \frac{P(X=x_i|Y=y_j)P(Y=y_j)}{P(X=x_i)}
 $$
 
-- $(Y=y_j)$ is the event we want to analyze and $(X=x_i)$ is the event we takes as an evidence to support the occurance of $(Y=y_j)$.
-- $P(Y=y_j)$ is the prior probability of $(Y=y_j)$ without knowing $(X=x_i)$ as an evidence.
-  It is the best guess of the probability of $(Y=y_j)$ occurring without new information.
-- $P(X=x_i)$ is the prior probability of finding the evidence. It normalize the likelihood $P(X=x_i|Y=y_j)$.
-- $P(X=x_i|Y=y_j)$ is the likelihood. it can be written as $L(Y=y_j|X=x_i)$.It is the probability of finding the evidence $(X=x_i)$ given the $(Y=y_j)$ has already occured.
-- $P(Y=y_j|X=x_i)$ is the posterior probability we want to calculate after seeing an evidence $(X=x_i)$.
-
 In-terms of probability, $P(Y=y_j|X=x_i)$ describes the probability of finding our target $(Y=y_j)$ given the evidence $(X=x_i)$.
 $P(Y=y_j)$ describes the probability of finding our target $(Y=y_j)$ before knowing the evidence $(X=x_i)$.
 If the new evidence $(X=x_i)$ is value-adding, we should see $P(Y=y_j|X=x_i)$ deviates from $P(Y=y_j)$. In other words,
@@ -302,54 +290,38 @@ the new evidence $(X=x_i)$ can update our degree of belief $P(Y=y_j)$.
 
 Therefore, $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)}$ can be understood as the support of the evidence for our target, since $\frac{P(X=x_i|Y=y_j)}{P(X=x_i)} > 1 \rightarrow P(Y=y_j|X=x_i) > P(Y=y_j)$, . This shows the evidence $(X=x_i)$ is for $(Y=y_j)$.
 
-**TODOs:**
+## Likelihood
 
-- Example for Bayesian update.
-- Dive deeper into Bayesian inference.
+From Wikipedia:
 
-## Estimating a Model's Parameter
+> The likelihood function (often simply called the likelihood) is the joint probability of the observed data viewed as a function of the parameters of the chosen statistical model.
 
-TODO
+Let's say we have observed a dataset $\bold{D}$. In that dataset there are $N$ samples. We want to estimate a model's parameter $(\bold{W}=\bold{w})$ that is best fit to the
+dataset $\bold{D}$ from all possible parameters. The likelihood $L(\bold{W}=\bold{w}|\bold{D})$ is the measure of how likely one can observe this dataset $\bold{D}$ given $\bold{W}={w}$ is the correct $P(\bold{D}|\bold{W}=\bold{w})$.
 
-{/*
+## Maximum Likelihood Estimation
 
-### Model's Parameter Distribution
+There are $N$ samples $\{\bold{x_1},\bold{x_2}...\bold{x_N}\}$ in the dataset $\bold{D}$:
 
-Let's say we have observed a dataset $D$. We want to estimate a model's parameter $(W=w)$ that is best fit to the
-dataset $D$ from all possible parameters $W$.
+$$
+P(\bold{D}|\bold{W}=\bold{w}) = P(\bold{x_1}, \bold{x_2} ... \bold{x_N}|\bold{W}=\bold{w})
+$$
 
-- $\Omega_{W} = \mathbb{R}$
-- The probability of $w$ being the best: $P(W=w) \in [0, 1]$
+Assume those samples are independent:
 
-### Dataset Distribution
+$$
+P(\bold{D}|\bold{W}=\bold{w}) = P(\bold{x_1}|\bold{W}=\bold{w}) \times P(\bold{x_2}|\bold{W}=\bold{w}) ... P(\bold{x_N}|\bold{W}=\bold{w})
+= \prod_{i=1}^{N} P(\bold{x_i}|\bold{W}=\bold{w})
+$$
 
-In terms of supervised learning, the dataset distribution $D$ contains a input distribution $X$
-and a target distribution $T$. For a dataset $D$ contains $N$ samples, the i-th data sample $(D=d_i)$ is a pair of $(X=x_i, T=t_i)$:
+To find the best $\bold{W}=\bold{w}$, we going to maximize the likelihood:
 
-- $\Omega_{D} = \{d_1, d_2, ..., d_i, ... d_N\}$
+$$
+\bold{\hat{w}} = \argmax_{\bold{w}\in\bold{W}}{P(\bold{D}|\bold{W}=\bold{w})} = \argmax_{\bold{w}\in\bold{W}}{\prod_{i=1}^{N} P(\bold{x_i}|\bold{W}=\bold{w})}
+$$
 
-- $\Omega_{D} = \{(x_1, t_1), (x_2, t_2), ..., (x_i, t_i), ... (x_N, t_N)\}$
+The objective is also equivalent to maximize the log-likelihood:
 
-- The probability of getting a particular sample $d_i$ from the dataset $D$: $P(D=d_i) \in [0, 1]$ during training.
-
-- $P(D=d_i)$ is a constant, for example $P(D=d_i)=\frac{1}{N}$ if there is no special sampling in the training procedure.
-
-### Prediction Distribution
-
-Let's $Y$ be a new random variable that takes $X$ and $W$ and map them to the model's predictions.
-
-- $\Omega_{Y} = \{y_1, y_2, ..., y_i, ... y_N\}$
-- For regression: $\Omega_{y_i} = \mathbb{R}$
-- For binary classification: $\Omega_{y_i} = \{1, 2\}$
-- The prediction distribution for all $N$ samples and all possible $w$ within $W$: $P(Y|X,W)$
-- The prediction distribution for all $N$ samples with a optimized $w$: $P(Y|X,W=w)$
-  - For a 10-class classification task, $P(Y|X,W=w)$ is a matrix with shape $(N \times 10)$.
-- The prediction distribution for i-th data sample with a optimized $w$: $P(Y=y_i|X=x_i,W=w)$
-  - For a 10-class classification task, $P(Y=y_i|X=x_i,W=w)$ is a vector with shape $10$.
-
-**TODOs**
-
-- MAP
-- MLE
-
-*/}
+$$
+\bold{\hat{w}} = \argmax_{\bold{w}\in\bold{W}}{\prod_{i=1}^{N} P(\bold{x_i}|\bold{W}=\bold{w})} = \sum_{i=1}^{N}{\ln  P(\bold{x_i}|\bold{W}=\bold{w})}
+$$
