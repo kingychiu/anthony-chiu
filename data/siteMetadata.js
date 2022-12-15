@@ -1,6 +1,6 @@
 const siteMetadata = {
-  title: 'Anthony Chiu @kingychiu',
-  author: 'Anthony Chiu',
+  title: 'King Yuen Chiu, Anthony @kingychiu',
+  author: 'King Yuen Chiu, Anthony',
   headerTitle: '@kingychiu',
   description: 'An archive of what I have done.',
   language: 'en-us',
