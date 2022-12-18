@@ -1,5 +1,5 @@
 ---
-title: 'Probability Theory, Maximum Likelihood Estimate'
+title: 'Probability Theory, Maximum Likelihood Estimate & Maximum a Posteriori Estimation'
 date: '2022-05-01'
 lastmod: '2022-05-01'
 tags:
@@ -14,8 +14,9 @@ tags:
     'Bayesian Probability',
     'Test of Independence',
     'Bayes theorem',
-    'Maximum Likelihood Estimate (MLE)',
     'Likelihood',
+    'Maximum Likelihood Estimate (MLE)',
+    'Maximum a Posteriori Estimation (MAP)',
   ]
 draft: false
 layout: PostSimple
@@ -23,16 +24,6 @@ summary: 'Discuss the Joint Probability, Marginal Probability, Conditional Proba
 images: []
 authors: ['default']
 ---
-
-## Overview
-
-Machine Learning Refresher is a series of articles that records my journey of relearning the fundamentals of Machine Learning.
-
-This article is a compiled version of
-
-- Section 1.2 Probability Theory of the "Pattern Recognition and Machine Learning" book.
-- MSBD5012 Machine Learning course materials
-- Other online resources
 
 <TOCInline exclude="Overview" toc={props.toc} asDisclosure />
 
@@ -283,11 +274,11 @@ $$
 
 Here,
 
-- $P(Y=y_j|X=x_i)$ describes the probability of finding our target $(Y=y_j)$ given the evidence $(X=x_i)$.
-- $P(Y=y_j)$ describes the probability of finding our target $(Y=y_j)$ before knowing the evidence $(X=x_i)$.
+- $P(Y=y_j|X=x_i)$ describes the probability of finding our target $(Y=y_j)$ given the `Evidence` $(X=x_i)$. It is also called the `Posterior` Probability.
+- $P(Y=y_j)$ describes the probability of finding our target $(Y=y_j)$ before knowing the `Evidence` $(X=x_i)$. It is also called the `Prior` Probability.
 
-If the new evidence $(X=x_i)$ is value-adding, we should see $P(Y=y_j|X=x_i)$ deviates from $P(Y=y_j)$. In other words,
-the new evidence $(X=x_i)$ can update our degree of belief $P(Y=y_j)$.
+If the new `Evidence` $(X=x_i)$ is value-adding, we should see `Posterior` $P(Y=y_j|X=x_i)$ deviates from the `Prior` $P(Y=y_j)$. In other words,
+the new `Evidence` $(X=x_i)$ can update our degree of belief.
 
 Also:
 
@@ -295,40 +286,64 @@ $$
 P(X=x_i|Y=y_j)/P(X=x_i) > 1 \Rightarrow P(Y=y_j|X=x_i) > P(Y=y_j)
 $$
 
-This shows the evidence $(X=x_i)$ is for $(Y=y_j)$. Therefore, $P(X=x_i|Y=y_j)/P(X=x_i)$ can be understood as the support of the evidence for our target.
+This shows the `Evidence` $(X=x_i)$ is for $(Y=y_j)$. Therefore, $P(X=x_i|Y=y_j)/P(X=x_i)$ can be understood as the `Support` of the evidence for our target.
 
-## Likelihood
+## Likelihood (in model's parameter estimation)
 
-From Wikipedia:
+Let's say we have observed a dataset $\bold{d} = \{x_1,x_2...x_N\}$ from the dataset distribution $\bold{D}$. We want to estimate a model's parameter $\bold{w}=\{w_1,w_2...w_N\}$ from all possible parameters $\bold{W}$
+that is the best fit to the dataset $\bold{D}=\bold{d}$. The `Likelihood` $L(\bold{W}=\bold{w}|\bold{D}=\bold{d})$ is the measure of how likely one can observe this dataset $\bold{D}=\bold{d}$ given $\bold{W}=\bold{w}$.
 
-> The likelihood function (often simply called the likelihood) is the joint probability of the observed data viewed as a function of the parameters of the chosen statistical model.
+Equivalently $L(\bold{W}=\bold{w}|\bold{D}=\bold{d})=P(\bold{D}=\bold{d}|\bold{W}=\bold{w})$. In most cases, we have a varing $\bold{w}$ and a fixed $\bold{d}$,
+therefore the `Likelihood` is a function of model parameter $\bold{w}$. For example, given a training dataset $\bold{d}$ and 2 models $\bold{w}_a$ and $\bold{w}_b$, $\bold{w}_a$ is better if
+$P(\bold{D}=\bold{d}|\bold{W}=\bold{w}_a) > P(\bold{D}=\bold{d}|\bold{W}=\bold{w}_b)$
 
-Let's say we have observed a dataset $\bold{D}$. In that dataset there are $N$ samples. We want to estimate a model's parameter $\bold{w}$ that is the best fit to the
-dataset $\bold{D}$ from all possible parameters $\bold{W}$. The likelihood $L(\bold{W}=\bold{w}|\bold{D})$ is the measure of how likely one can observe this dataset $\bold{D}$ given $\bold{W}=\bold{w}$ is the correct $P(\bold{D}|\bold{W}=\bold{w})$.
+Also, since $P(\bold{D}=\bold{d}|\bold{W}=\bold{w})$ is a function of $\bold{w}$ (varying $\bold{w}$) in this setting, it is not a probability distribution.
+$P(\bold{D}=\bold{d}|\bold{W}=\bold{w})$ is a probability distribution only if it is a function of $\bold{d}$ (varying $\bold{d}$).
 
-## Maximum Likelihood Estimation
+## Maximum Likelihood Estimation (MLE)
 
-There are $N$ samples $\{\bold{x_1},\bold{x_2}...\bold{x_N}\}$ in the dataset $\bold{D}$:
+There are $N$ samples $\{x_1,x_2...x_N\}$ in the dataset $\bold{D}=\bold{d}$:
 
 $$
-P(\bold{D}|\bold{W}=\bold{w}) = P(\bold{x_1}, \bold{x_2} ... \bold{x_N}|\bold{W}=\bold{w})
+P(\bold{D}=\bold{d}|\bold{W}=\bold{w}) = P(x_1,x_2...x_N|\bold{W}=\bold{w})
 $$
 
 Assume those samples are independent:
 
 $$
-P(\bold{D}|\bold{W}=\bold{w}) = P(\bold{x_1}|\bold{W}=\bold{w}) \times P(\bold{x_2}|\bold{W}=\bold{w}) ... P(\bold{x_N}|\bold{W}=\bold{w})
-= \prod_{i=1}^{N} P(\bold{x_i}|\bold{W}=\bold{w})
+P(\bold{D}=\bold{d}|\bold{W}=\bold{w}) = P(x_1|\bold{W}=\bold{w}) \times P(x_2|\bold{W}=\bold{w}) ... P(x_N|\bold{W}=\bold{w})
+= \prod_{i=1}^{N} P(x_i|\bold{W}=\bold{w})
 $$
 
-To find the best $\bold{W}=\bold{w}$, we going to maximize the likelihood:
+To find the best $\bold{W}=\bold{w}$, we going to maximize the `Likelihood`:
 
 $$
-\bold{\hat{w}} = \argmax_{\bold{w}\in\bold{W}}{P(\bold{D}|\bold{W}=\bold{w})} = \argmax_{\bold{w}\in\bold{W}}{\prod_{i=1}^{N} P(\bold{x_i}|\bold{W}=\bold{w})}
+\bold{\hat{w}} = \argmax_{\bold{w}\in\bold{W}}{P(\bold{D}=\bold{d}|\bold{W}=\bold{w})} = \argmax_{\bold{w}\in\bold{W}}{\prod_{i=1}^{N} P(x_i|\bold{W}=\bold{w})}
 $$
 
-The objective is also equivalent to maximize the log-likelihood:
+The objective is also equivalent to maximize the `Log-likelihood`:
 
 $$
-\bold{\hat{w}} = \argmax_{\bold{w}\in\bold{W}}{P(\bold{D}|\bold{W}=\bold{w})} = \argmax_{\bold{w}\in\bold{W}}\sum_{i=1}^{N}{\ln  P(\bold{x_i}|\bold{W}=\bold{w})}
+\bold{\hat{w}} = \argmax_{\bold{w}\in\bold{W}}{P(\bold{D}=\bold{d}|\bold{W}=\bold{w})} = \argmax_{\bold{w}\in\bold{W}}\sum_{i=1}^{N}{\ln  P(x_i|\bold{W}=\bold{w})}
 $$
+
+## Maximum a Posteriori Estimation (MAP)
+
+In `MLE`, the `Likelihood` $P(\bold{D}=\bold{d}|\bold{W}=\bold{w})$ is a function of $\bold{w}$ (varying $\bold{w}$) in this setting, it is not a probability distribution.
+To have a function of $\bold{w}$ that is a probability distribution given $\bold{D}=\bold{d}$, we need to use the Bayes' theorem to find the
+`Posterior` probability of the model parameter $\bold{w}$ is true.
+
+$$
+P(\bold{W}=\bold{w}∣\bold{D}=\bold{d}) = \frac{P(\bold{D}=\bold{d}|\bold{W}=\bold{w})P(\bold{W}=\bold{w})}{P(\bold{D}=\bold{d})}
+$$
+
+Since $P(\bold{D}=\bold{d})$ is positive, `MAP` becomes:
+
+$$
+\bold{\hat{w}} = \argmax_{\bold{w}\in\bold{W}}{P(\bold{W}=\bold{w}|\bold{D}=\bold{d})} = \argmax_{\bold{w}\in\bold{W}}{P(\bold{D}=\bold{d}|\bold{W}=\bold{w})P(\bold{W}=\bold{w})}
+$$
+
+$P(\bold{W}=\bold{w})$ can be considered as the external knowledge of the parameter. `MAP` is like an external knowledge regularized `MLE`.
+
+For example, the external knowledge can come from an human expert, then under the `MAP` setting, a bad model parameter ${\bold{w}_{bad}}$ can be avoided by providing a low $P(\bold{W}=\bold{w}_{bad})$.
+An example of bad parameters can be: A model that relies heavily on the gender information for predicting credit default.
