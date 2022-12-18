@@ -7,17 +7,3 @@ github: https://github.com/kingychiu
 kaggle: https://www.kaggle.com/kingychiu
 orcid: https://orcid.org/0000-0001-6438-8479
 ---
-
-## Work Experience
-
-- Head of Engineering, [Talentlabs](https://www.talentlabs.org) (2022 - present)
-
-- Software Engineering III, [CoverHealth](https://www.cloverhealth.com) (2020 - 2022)
-
-- Tech Founder, [Weava](https://www.weavatools.com/) (2016 - 2019)
-
-## Education
-
-- MSc in Big Data Technology, HKUST (2020-2022)
-
-- BEng in Computer Engineering, HKU (2013-2017)
