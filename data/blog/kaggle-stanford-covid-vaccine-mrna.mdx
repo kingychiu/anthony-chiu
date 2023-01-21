@@ -20,7 +20,13 @@ images: ['/static/images/kaggle-stanford-covid-vaccine/RNAfold-result.png']
 authors: ['default']
 ---
 
-![banner](/static/images/kaggle-stanford-covid-vaccine/banner.png)
+<Image
+  style={{ background: 'white' }}
+  alt="banner"
+  src="/static/images/kaggle-stanford-covid-vaccine/banner.png"
+  width="1024"
+  height="225.625"
+/>
 
 ## Overview
 
@@ -34,13 +40,15 @@ The original short write-up on [Kaggle](https://www.kaggle.com/competitions/stan
 
 ## Problem Statement
 
-<div>
-  <img
+<div className="text-center">
+  <Image
+    style={{ background: 'white' }}
     alt="mRNA-degradation"
     src="/static/images/kaggle-stanford-covid-vaccine/mRNA-degradation.png"
-    style={{ background: 'white', maxHeight: '300px', margin: 'auto' }}
+    width="664.7"
+    height="300"
   />
-  <div className="text-center">Fig.1 mRNA Degradation[^1]</div>
+  <div>Fig.1 mRNA Degradation[^1]</div>
 </div>
 
 One of the biggest problems of mRNA vaccines is its tendency to degrade spontaneously. If an mRNA vaccine degrades, it becomes useless. Therefore, the mRNA vaccines must be prepared and shipped under intense refrigeration. This becomes a significant barrier in delivering mRNA vaccines to areas lacking proper logistical and medical infrastructure.
@@ -61,11 +69,12 @@ mRNA sequences data have 107 bases and 130 bases in the training and validation 
 
 A mRNA sequence can have different structures. In this competition, we were given 2 features: `structure` and `predicted_loop_type`. They describe the secondary structure of a mRNA sequence predicted by Vienna RNAfold 2[^2].
 
-<div>
-  <img
+<div className="text-center">
+  <Image
     alt="RNAfold result"
     src="/static/images/kaggle-stanford-covid-vaccine/RNAfold-result.png"
-    style={{ maxHeight: '400px', margin: 'auto' }}
+    width="461"
+    height="400"
   />
   <div className="text-center">
     Fig.2 RNAfold Result[^3], a darker color indicates a higher base pairing probability
@@ -74,13 +83,14 @@ A mRNA sequence can have different structures. In this competition, we were give
 
 The result shown in Fig.2 is the RNAfold result of the following mRNA `sequence`. The corresponding `structure` and `predicted_loop_type` are represented as strings in the dataset:
 
-<div>
-  <img
+<div className="text-center">
+  <Image
     alt="RNAfold result string representation"
     src="/static/images/kaggle-stanford-covid-vaccine/RNAfold-result-string.png"
-    style={{ margin: 'auto' }}
+    width="1024"
+    height="242"
   />
-  <div className="text-center">Fig.3 RNAfold Result String Representation[^1]</div>
+  <div>Fig.3 RNAfold Result String Representation[^1]</div>
 </div>
 
 Paired bases are denoted by opening and closing parentheses in the `structure` field. Loop types are coded by -- S: paired "Stem", M: Multiloop, I: Internal loop, B: Bulge, H: Hairpin loop, E: dangling End, and X: eXternal loop in the `predicted_loop_type` field.
@@ -127,13 +137,14 @@ Our 11-th place solution is an ensemble of multiple models. There are mainly two
 
 My work was mainly on the first type of model (`1D Convolution Layers`, `Graph Convolution Layers`, and `RNN Layers`). The model summary of a simplified version is reported in Fig.4.
 
-<div>
-  <img
+<div className="text-center">
+  <Image
     alt="Keras Model"
     src="/static/images/kaggle-stanford-covid-vaccine/keras-model.png"
-    style={{ maxHeight: '800px', margin: 'auto' }}
+    width="632"
+    height="800"
   />
-  <div className="text-center">Fig.4 Simplified model summary[^5]</div>
+  <div>Fig.4 Simplified model summary[^5]</div>
 </div>
 
 ### Ideation
@@ -144,13 +155,14 @@ At first, most of the Kaggle teams were using only RNN models. There were discus
 - The given structure information and the pairing probabilities are like the attention that bridges information from 1 base to its base. By experiment, I found the `Graph Convolutional Layers (GCN)` from the Keras Spektral package[^6] is helpful. It takes an input sequence and a pre-defined matrix as the adjacency matrix.
 - In the end, Bi-directional RNN layers, such as the `Gated Recurrent Unit Layer (GRU)` or the `Long Short Term Memory Layer (LSTM)`, are used for the generic information passing and variable-length sequence prediction.
 
-<div>
-  <img
+<div className="text-center">
+  <Image
     alt="Intuition"
     src="/static/images/kaggle-stanford-covid-vaccine/intuition.png"
-    style={{ maxHeight: '200px', margin: 'auto' }}
+    width="648"
+    height="200"
   />
-  <div className="text-center">Fig.5 Intuition[^5]</div>
+  <div>Fig.5 Intuition[^5]</div>
 </div>
 
 ### Sequences Encoding
@@ -223,8 +235,9 @@ $$
 $$
 </div>
 
-And $\mathbf{\hat{D}} \in \mathbb{R}^{S \times S}$ denotes the degree matrix of $\mathbf{\hat{A}}$, 
+And $\mathbf{\hat{D}} \in \mathbb{R}^{S \times S}$ denotes the degree matrix of $\mathbf{\hat{A}}$,
 the degree matrix is a diagonal matrix with its diagnoal values defined as:
+
 <div style={{overflowX: "auto"}}>
 $$
 \hat{D}_{ii} = \sum_{j}{\hat{A}_{ij}}
@@ -232,6 +245,7 @@ $$
 </div>
 
 Finally, to compute the output of a `GraphConv Layer`:
+
 <div style={{overflowX: "auto"}}>
 $$
 \underset{S \times C}{\mathbf{GraphConv}(\mathbf{X}, \mathbf{A})} = f_{activation}(\underset{S \times S}{\mathbf{\hat{D}^{-\frac{1}{2}}} \cdot \mathbf{\hat{A}} \cdot \mathbf{\hat{D}^{-\frac{1}{2}}}} \cdot \underset{S \times D}{\mathbf{X}} \cdot \underset{D \times C}{\mathbf{W}} + \underset{C}{\mathbf{b}})
@@ -267,13 +281,14 @@ This was reported by the other team as well. Some teams down-scaled all of their
 
 We achieved 11-th place (top-1%) from this competition. Although it has been my 4th Gold medal, this is the first time I have practiced the idea of feature engineering with neural network layers. It has been a fun journey to think about transforming the model to fit the data better.
 
-<div>
-  <img
+<div className="text-center">
+  <Image
     alt="Leader Board"
     src="/static/images/kaggle-stanford-covid-vaccine/leaderboard.png"
-    style={{ maxHeight: '500px', margin: 'auto' }}
+    width="670"
+    height="500"
   />
-  <div className="text-center">Fig.6 The final leader board</div>
+  <div>Fig.6 The final leader board</div>
 </div>
 
 [^1]: [[Website] OpenVaccine: COVID-19 mRNA Vaccine Degradation Prediction](https://www.kaggle.com/competitions/stanford-covid-vaccine)

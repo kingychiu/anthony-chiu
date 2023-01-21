@@ -1,5 +1,6 @@
 import Link from '@/components/Link'
 import Tag from '@/components/Tag'
+import Image from 'next/image'
 import siteMetadata from '@/data/siteMetadata'
 import { useState } from 'react'
 import Pagination from '@/components/Pagination'
@@ -30,11 +31,17 @@ export default function ListLayout({ posts, title, initialDisplayPosts = [], pag
                   href={`/blog/${slug}`}
                   key={slug}
                   className="
-                    hover: flex flex-col overflow-hidden rounded-lg border border-gray-800 
-                    transition duration-300 ease-in-out hover:scale-110 hover:shadow-lg"
+                    hover: flex flex-col overflow-hidden rounded-lg border border-gray-800 transition
+                    duration-300 ease-in-out hover:scale-105 hover:shadow-2xl dark:border-white"
                 >
-                  <div className="flex-shrink-0">
-                    <img className="h-48 w-full object-cover" src={images[0]} alt="" />
+                  <div className="mt-6 flex-shrink-0 text-center">
+                    <Image
+                      src={images[0]}
+                      alt=""
+                      width="300"
+                      height="200"
+                      className="object-cover"
+                    />
                   </div>
                   <div className="flex flex-1 flex-col justify-between bg-transparent p-6">
                     <div className="flex-1">
