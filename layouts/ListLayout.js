@@ -19,89 +19,49 @@ export default function ListLayout({ posts, title, initialDisplayPosts = [], pag
   return (
     <>
       <div className="divide-y">
-        <div className="space-y-2 pt-4 pb-4 md:space-y-5">
-          <div className="mb-3 flex space-x-4">
-            <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
-              {siteMetadata.description}
-            </p>
-          </div>
-          {/* <h1 className="text-4xl font-extrabold leading-9 tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl sm:leading-10 md:text-4xl md:leading-14">
-            {title}
-          </h1> */}
-          {/* <div className="relative max-w-lg">
-            <input
-              aria-label="Search articles"
-              type="text"
-              onChange={(e) => setSearchValue(e.target.value)}
-              placeholder="Search articles"
-              className="block w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-900 dark:bg-gray-800 dark:text-gray-100"
-            />
-            <svg
-              className="absolute right-3 top-3 h-5 w-5 text-gray-400 dark:text-gray-300"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div> */}
-        </div>
         <ul>
           {!filteredBlogPosts.length && 'No posts found.'}
-          {displayPosts.map((frontMatter) => {
-            const { slug, date, title, summary, tags } = frontMatter
-            return (
-              <li key={slug} className="py-4">
-                <article>
-                  <div className="space-y-2 xl:grid xl:grid-cols-4 xl:items-baseline xl:space-y-0">
-                    {/* <dl>
-                      <dt className="sr-only">Published on</dt>
-                      <dd className="text-base font-medium leading-6 text-gray-500 dark:text-gray-400">
+
+          <div className="mx-auto mt-12 grid max-w-lg gap-5 lg:max-w-none lg:grid-cols-3">
+            {displayPosts.map((frontMatter) => {
+              const { slug, date, title, summary, tags, images } = frontMatter
+              return (
+                <a
+                  href={`/blog/${slug}`}
+                  key={slug}
+                  className="
+                    hover: flex flex-col overflow-hidden rounded-lg border border-gray-800 
+                    transition duration-300 ease-in-out hover:scale-110 hover:shadow-lg"
+                >
+                  <div className="flex-shrink-0">
+                    <img className="h-48 w-full object-cover" src={images[0]} alt="" />
+                  </div>
+                  <div className="flex flex-1 flex-col justify-between bg-transparent p-6">
+                    <div className="flex-1">
+                      <div className="dark:text-grey-400 flex space-x-1 text-sm text-gray-500">
                         <time dateTime={date}>{formatDate(date)}</time>
-                      </dd>
-                    </dl> */}
-                    <div className="space-y-2 xl:col-span-3">
-                      <div className="space-y-2">
-                        <div>
-                          <h2 className="text-2xl font-bold leading-8 tracking-tight">
-                            <Link
-                              href={`/blog/${slug}`}
-                              className="text-gray-900 dark:text-gray-100"
-                            >
-                              {title}
-                            </Link>
-                          </h2>
-                        </div>
-                        <div className="prose max-w-none text-sm text-gray-500 dark:text-gray-400">
-                          {summary}
-                        </div>
-                        <div className="flex flex-wrap">
-                          {tags.map((tag) => (
-                            <Tag key={tag} text={tag} />
-                          ))}
-                        </div>
                       </div>
-                      <div className="text-base font-medium leading-6">
-                        <Link
-                          href={`/blog/${slug}`}
-                          className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
-                          aria-label={`Read "${title}"`}
-                        >
-                          Read more &rarr;
-                        </Link>
+                      <div className="mt-2 block">
+                        <p className="text-base font-semibold text-gray-900  dark:text-white">
+                          {title}
+                        </p>
+                        <p className="dark:text-grey-400 mt-3 text-base  text-gray-500">
+                          {summary}
+                        </p>
                       </div>
                     </div>
+                    {/* <div className="mt-6 flex items-center">
+                      <div className="flex flex-wrap ">
+                        {tags.map((tag) => (
+                          <Tag key={tag} text={tag} />
+                        ))}
+                      </div>
+                    </div> */}
                   </div>
-                </article>
-              </li>
-            )
-          })}
+                </a>
+              )
+            })}
+          </div>
         </ul>
       </div>
       {pagination && pagination.totalPages > 1 && !searchValue && (

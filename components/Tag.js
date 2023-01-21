@@ -4,11 +4,13 @@ import kebabCase from '@/lib/utils/kebabCase'
 const Tag = ({ text }) => {
   return (
     <Link href={`/tags/${kebabCase(text)}`}>
-      <a className="mr-3 text-sm font-medium text-primary-500 hover:text-primary-600 dark:hover:text-primary-400">
+      <a className="mr-2 mb-2 rounded-md bg-primary-200 p-2 text-sm font-medium hover:bg-primary-500 dark:bg-primary-500 dark:hover:bg-primary-600">
         {text.split(' ').join('-')}
       </a>
     </Link>
   )
 }
+
+//
 
 export default Tag

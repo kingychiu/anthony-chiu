@@ -49,7 +49,13 @@ export default function Tag({ posts, tag }) {
         title={`${tag} - ${siteMetadata.author}`}
         description={`${tag} tags - ${siteMetadata.author}`}
       />
-      <ListLayout posts={posts} title={title} />
+
+      <div className="divide-y divide-gray-600 dark:divide-white">
+        <div className="space-y-2 space-y-4 pt-4 pb-4">
+          <h2 className="pt-0 pb-0 text-2xl font-bold leading-8 tracking-tight">{title}</h2>
+        </div>
+        <ListLayout posts={posts} />
+      </div>
     </>
   )
 }

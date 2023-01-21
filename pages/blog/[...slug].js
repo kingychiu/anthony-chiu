@@ -61,7 +61,7 @@ export default function Blog({ post, authorDetails, prev, next }) {
   return (
     <>
       {frontMatter.draft !== true ? (
-        <div className="divide-y">
+        <div className="divide-y divide-gray-600 dark:divide-white">
           <div className="space-y-2 space-y-4 pt-4 pb-4">
             <h2 className="pt-0 pb-0 text-2xl font-bold leading-8 tracking-tight">
               {name}, {nickName}
