@@ -1,0 +1,112 @@
+---
+title: 'Attention Mechanism - Dot-Product, Multiplicative, Additive & Scaled Dot-Product Attention'
+date: '2023-01-22'
+lastmod: '2023-01-22'
+tags:
+  [
+    'Attention Mechanism',
+    'Dot-Product Attention',
+    'Multiplicative Attention',
+    'Additive Attention',
+    'Scaled Dot-Product Attention',
+  ]
+draft: true
+layout: PostSimple
+summary: 'Discuss the Attention Mechanism, including Dot-Product, Multiplicative, Additive & Scaled Dot-Product Attention with Math and Python.'
+images: ['/static/images/probability-theory/joint-probs.png']
+authors: ['default']
+---
+
+## Intuition: A Magic Hash Table
+
+<div className="text-center">
+  <Image
+    style={{ background: 'white' }}
+    alt="mRNA-degradation"
+    src="/static/images/attention/hash_table.png"
+    width="315"
+    height="230"
+  />
+  <div>Fig.1 Hash Table[^1]</div>
+</div>
+
+Hash Table is a data structure that maps keys to values. The Hash Table stores the indexed values and the index is computed
+by a hash function. The hash function is a function that maps a key to a hash value.
+
+For example, in the above figure, a person name is the key and the person's phone number is the value. In order to find the correct
+value of a key, we need to compute the hash value of the key and then use the hash value to find the value in the hash table.
+
+### Extact Hash Match and Hash Collision
+
+The most common use case of a Hash Table is to extract the extact hash match. This way, the ideal situation is to have a hash function that
+generates unique hash value. It is not always possible to find a hash function that generates unique hash value.
+When the hash value of two keys are the same, it is called a hash collision.
+
+### Is Hash Collision always Bad?
+
+Hash Collision is not always bad. For example, if we have a magic hash function $H_\mathbf{magic}$ that can generate the same hash value for all the nick names of a person,
+then our Hash Table $HT$ only need to store one value for all the nick names of a person. This is a good thing.
+
+<div style={{ overflowX: 'auto' }}>
+$$
+    H_\mathbf{magic}(\mathbf{Anthony\space Chiu}) = H_\mathbf{magic}(\mathbf{Anthony \space Ch.}) = 1
+$$
+$$
+    HT(1) = \mathbf{123456789}
+$$
+</div>
+
+### Hash Function Approximator
+
+Such a magic hash function is hard to find or doesn't exsit. We can use the Neural Network $\mathbf{NN}_{\mathbf{hash}}$ to approximate the hash function. However, the output of
+a neural network is undeterminstic, so ideally we have:
+
+<div style={{ overflowX: 'auto' }}>
+$$
+    \mathbf{NN}_{\mathbf{hash}}(\mathbf{Anthony\space Chiu}) \approx \mathbf{NN}_{\mathbf{hash}}(\mathbf{Anthony \space Ch.}) \approx 1
+$$
+</div>
+
+### Hash Table Approximator
+
+If at best we can only get a hash value approximation, it is hard to get a value from our original Hash Table.
+How about we approximate the whole Hash Table? We can use a Neural Network $\mathbf{NN}_{\mathbf{hash\space table}}$ to approximate the Hash Table.
+
+#### Multi-Class Classification
+
+In this setting, the input of the Neural Network is a key and the output of the Neural Network is a value:
+
+<div style={{ overflowX: 'auto' }}>
+$$
+    \mathbf{NN}_{\mathbf{hash\space table}}(\mathbf{Anthony\space Chiu}) = \mathbf{NN}_{\mathbf{hash\space table}}(\mathbf{Anthony \space Ch.}) = \mathbf{123456789}
+$$
+</div>
+
+This setting is not related to the Attention Mechanism so much, we are not going to discuss it further.
+
+#### Ranking
+
+In this setting, the input of the Neural Network is a key and a value, and the output is the compatibility/alignment score between the key and the value.
+The higher the compatibility/alignment score, the more likely the key and the value are related.
+
+For example, we we have have a Neural Network that produces the following compatibility/alignment scores, we reproduces our magic Hash Table behaviour:
+
+<div style={{ overflowX: 'auto' }}>
+$$
+    \mathbf{NN}_{\mathbf{hash\space table}}(\mathbf{Anthony\space Chiu}, \mathbf{123456789}) = 0.8\\
+
+    \mathbf{NN}_{\mathbf{hash\space table}}(\mathbf{Anthony\space Chiu}, \mathbf{987654321}) = 0.2\\
+
+    \mathbf{NN}_{\mathbf{hash\space table}}(\mathbf{Anthony\space Ch.}, \mathbf{123456789}) = 0.8\\
+
+    \mathbf{NN}_{\mathbf{hash\space table}}(\mathbf{Anthony\space Ch.}, \mathbf{987654321}) = 0.2\\
+
+$$
+</div>
+
+[^1]: [[Website] Wikipedia - Hash table](https://en.wikipedia.org/wiki/Hash_table)
+[^1]: [[Website] Paper with code - Dot-Product Attention](https://paperswithcode.com/method/dot-product-attention)
+[^2]: [[Website] Paper with code - Multiplicative Attention](https://paperswithcode.com/method/multiplicative-attention)
+[^3]: [[Website] Paper with code - Additive Attention](https://paperswithcode.com/method/additive-attention)
+[^4]: [[Website] Paper with code - Scaled Dot-Product Attention](https://paperswithcode.com/method/scaled)
+$$
