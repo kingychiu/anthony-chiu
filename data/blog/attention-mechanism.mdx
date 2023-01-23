@@ -1,112 +1,293 @@
 ---
-title: 'Attention Mechanism - Dot-Product, Multiplicative, Additive & Scaled Dot-Product Attention'
+title: 'Attention Mechanism - What are Query, Key, and Value?'
 date: '2023-01-22'
 lastmod: '2023-01-22'
 tags:
   [
     'Attention Mechanism',
-    'Dot-Product Attention',
-    'Multiplicative Attention',
+    'Query, Key, Value and Output',
     'Additive Attention',
+    'Bahdanau Attention',
+    'Dot-Product Attention',
     'Scaled Dot-Product Attention',
+    'Self-Attention',
+    'Transformer',
   ]
-draft: true
+draft: false
 layout: PostSimple
-summary: 'Discuss the Attention Mechanism, including Dot-Product, Multiplicative, Additive & Scaled Dot-Product Attention with Math and Python.'
-images: ['/static/images/probability-theory/joint-probs.png']
+summary: 'Explain Query, Key, Value and Output in Attention Mechanism with an analogy of Information Retrieval System. 
+Discuss different Attention Mechanisms, including Additive/Bahdanau, Dot-Product, Scaled Dot-Product Attention, and Self Attention.
+Talk about the Query, Key, Value, and Output choices in the standard Transformer.'
+images: ['/static/images/attention/Information Retrieval (Fuzzy).png']
 authors: ['default']
 ---
 
-## Intuition: A Magic Hash Table
+## Abstract
+
+The Attention Mechanism is a flexible and powerful framework. However, it might be super confusing because of its flexibility. This
+article explains the concept of `Query`, `Key`, `Value`, and `Output` with an analogy of an Information Retrieval System. This article
+also shows how to achieve different Attention Mechanisms by varying:
+
+1. Query-Key compatibility function
+2. `Query`, `Key`, and `Value` choices
+
+For example, the innovation of Self-Attention is to use the same vector as `Query`, `Key`, and `Value`, while the
+innovation of Scaled Dot-Product Attention is to have a different Query-Key compatibility function.
+
+<TOCInline exclude="Overview" toc={props.toc} asDisclosure />
+
+## Information Retrieval System
+
+An Information Retrieval System stores `Values` indexed by `Keys`. A `Query` is used to retrieve
+related Key-Value pairs. The system returns the `Output` that is the retrieved `Value` or transformed `Value`.
+
+### Exact Matching
 
 <div className="text-center">
   <Image
     style={{ background: 'white' }}
-    alt="mRNA-degradation"
-    src="/static/images/attention/hash_table.png"
-    width="315"
-    height="230"
+    alt="Information Retrieval"
+    src="/static/images/attention/information-retrieval.png"
+    width="587"
+    height="226"
   />
-  <div>Fig.1 Hash Table[^1]</div>
+  <div>Fig.1 Finding the Exact Income by a Person's Name</div>
 </div>
 
-Hash Table is a data structure that maps keys to values. The Hash Table stores the indexed values and the index is computed
-by a hash function. The hash function is a function that maps a key to a hash value.
+In Fig.1, we have a basic system that allows users to find the exact income by a person's name. The system stores the `Values` (Income) indexed by `Keys` (Name).
+When a user enters a `Query` (Name), the system returns an `Output` (Income) where it is the `Value` (Income)
+that is related to the `Query` (Name).
 
-For example, in the above figure, a person name is the key and the person's phone number is the value. In order to find the correct
-value of a key, we need to compute the hash value of the key and then use the hash value to find the value in the hash table.
+### Query-Key Compatibility
 
-### Extact Hash Match and Hash Collision
+<div className="text-center">
+  <Image
+    style={{ background: 'white' }}
+    alt="Information Retrieval (Fuzzy Matching)"
+    src="/static/images/attention/information-retrieval-fuzzy.png"
+    width="646"
+    height="225"
+  />
+  <div>Fig.2 Estimating a Person's Income by His/Her Name</div>
+</div>
 
-The most common use case of a Hash Table is to extract the extact hash match. This way, the ideal situation is to have a hash function that
-generates unique hash value. It is not always possible to find a hash function that generates unique hash value.
-When the hash value of two keys are the same, it is called a hash collision.
+Sometimes, we might not want an exact matching between `Query` and `Key`. For example, in Fig.2,
+we want to estimate a person's income by their name. The `Query` might not be the same as the `Key` (Name).
+In this case, the system computes Query-Key compatibility scores between the `Query` and all the `Keys` (Name) in the system.
 
-### Is Hash Collision always Bad?
+We can use different functions to measure compatibility. The compatibility function takes the `Query` and `Key` as inputs and gives a score.
 
-Hash Collision is not always bad. For example, if we have a magic hash function $H_\mathbf{magic}$ that can generate the same hash value for all the nick names of a person,
-then our Hash Table $HT$ only need to store one value for all the nick names of a person. This is a good thing.
+Note: Query-Key compatibility has also been called similarity, relevancy, and alignment in different places.
+
+### Retrieval Output - Weighted Sum of Values
+
+The returned `Output` is the weighted sum of all `Values`,
+which is weighted by the Query-Key compatibility scores.
+
+For example, in Fig.2,
+
+1. If the scores are $[0.9, 0.1, 0.0]$ respectively, the returned `Output`
+   will be $1000 \times 0.9 + 2000 \times 0.1 + 3000 \times 0.0 = 1100$.
+
+2. If the scores are $[1.0, 0.0, 0.0]$ respectively, the returned `Output`
+   will be $1000$, the same as retrieving the `Value` with the highest associated Query-Key compatibility score.
+
+### Information Retrieval in Sequential Data
+
+We have discussed the Query-Key compatibility in terms of an Information Retrieval System, but how can we apply it into
+Deep Learning? We can use different `Querys`, `Keys`, and `Values` choices for various NLP tasks. Let's
+consider a simple task below:
+
+For a sentence: **"i like to eat apple"**, we want to know if the word **"apple"** is a fruit or a company.
+
+Let's have the following `Querys`, `Keys`, and `Values` choices:
+
+- `Keys` = `Values` as the embedding vectors of each word = $\mathbf{k}_{1 \le s \le S}$
+- `Query` as the embedding vector of the word **"apple"** = $\mathbf{q}$
+
+To understand if the word **"apple"** is a fruit or a company,
+we need to know the context of the sentence. We can use Query-Key compatibility to determine which words we should focus on to decide if
+the word **"apple"** is a fruit or a company.
+
+Ideally, we want the `Key` **"eat"** to have a higher score than the other `Keys`
+when `Query` is **"apple"**, for example $(\mathbf{q}, \mathbf{k}_4)$ should be
+more compatible than $(\mathbf{q}, \mathbf{k}_3)$.
+
+Let's make up some scores such that only the `Keys` **"eat"** and **"apple"** have a high score with the `Query` **"apple"**.:
+
+<div style={{ overflowX: 'auto' }}>$$ [0.0, 0.0, 0.0, 0.4, 0.6] $$</div>
+
+Then the `Output` for the `Query` **"apple"** will be the weighted sum of all `Values`:
 
 <div style={{ overflowX: 'auto' }}>
+  $$ \mathbf{o}=0.4 \times \mathbf{k}_4 + 0.6 \times \mathbf{k}_5 $$
+</div>
+
+## The General Form of Attention Mechanism
+
+> An attention function can be described as mapping a query and a set of key-value pairs to an output,
+> where the query, keys, values, and output are all vectors. The output is computed as a weighted sum
+> of the values, where the weight assigned to each value is computed by a compatibility function of the
+> query with the corresponding key. -- Attention Is All You Need[^1]
+
+### Query, Key, Value, and Output Vectors
+
+In the setting of deep learning, we have a `Query` vector $\mathbf{q}$, a `Key` vector $\mathbf{k}$, and a `Value` vector $\mathbf{v}$.
+They are in their own spaces, that's $\mathbf{q} \in \R^{d_q}$, $\mathbf{k} \in \R^{d_k}$ and $\mathbf{v} \in \R^{d_v}$.
+The returned output vector $\mathbf{o}$ is in the `Value` space, that's $\mathbf{o} \in \R^{d_v}$.
+
+Recall the Key-Value setting for Sequential Data above; let's say there is a sentence with length $S$, then there will be $S$ `Key` vectors
+and $S$ `Value` vectors. We can represent them as two matrices:
+
+<div style={{overflowX: "auto"}}>
 $$
-    H_\mathbf{magic}(\mathbf{Anthony\space Chiu}) = H_\mathbf{magic}(\mathbf{Anthony \space Ch.}) = 1
-$$
-$$
-    HT(1) = \mathbf{123456789}
+\mathbf{K} \in \R^{S \times d_k} = [\mathbf{k}_1^T, \mathbf{k}_2^T...\mathbf{k}_S^T]\\
+\mathbf{V} \in \R^{S \times d_v} = [\mathbf{v}_1^T, \mathbf{v}_2^T...\mathbf{v}_S^T]
 $$
 </div>
 
-### Hash Function Approximator
+### Query-key Compatibility Function
 
-Such a magic hash function is hard to find or doesn't exsit. We can use the Neural Network $\mathbf{NN}_{\mathbf{hash}}$ to approximate the hash function. However, the output of
-a neural network is undeterminstic, so ideally we have:
+A Query-Key compatibility function $f_{\mathbf{compatibility}}: (\R^{d_q}, \R^{d_k}) \to \R$
+maps a `Query` vector and a `Key` vector to a score scaler. The higher the score, the more compatible the `Query` vector and `Key` vector are.
+We will have $S$ compatibility scores:
+
+<div style={{overflowX: "auto"}}>
+$$
+\forall 1 \le s \le S: e_s \in \R = f_{\mathbf{compatibility}}(\mathbf{q}, \mathbf{k}_s)
+$$
+</div>
+
+### Attention Weights and the Output Vectors
+
+The attention weights are usually defined by applying softmax to the compatibility scores, such that the sum of the weights is 1.
+Here is how we compute these $S$ attention weights:
+
+<div style={{overflowX: "auto"}}>
+$$
+\forall 1 \le s \le S: a_s \in \R = \frac{\exp(e_s)}{\sum_{s=1}^S \exp(e_s)}
+$$
+</div>
+
+Then the `Output` vector $\mathbf{o} \in \R^{d_v}$ is the weighted sum of those $S$ `Value` vectors:
 
 <div style={{ overflowX: 'auto' }}>
-$$
-    \mathbf{NN}_{\mathbf{hash}}(\mathbf{Anthony\space Chiu}) \approx \mathbf{NN}_{\mathbf{hash}}(\mathbf{Anthony \space Ch.}) \approx 1
-$$
+  $$ \mathbf{o} \in \R^{d_v} = \sum_s^S a_s \mathbf{v}_s $$
 </div>
 
-### Hash Table Approximator
+## Different Query-Key Compatibility Functions
 
-If at best we can only get a hash value approximation, it is hard to get a value from our original Hash Table.
-How about we approximate the whole Hash Table? We can use a Neural Network $\mathbf{NN}_{\mathbf{hash\space table}}$ to approximate the Hash Table.
+### Additive / Bahdanau Attention
 
-#### Multi-Class Classification
-
-In this setting, the input of the Neural Network is a key and the output of the Neural Network is a value:
+Additive Attention refers to a compatibility function approximated by a neural network. [^2]
+It is a direct approximation approach to get a compatibility function. Because in Additive Attention,
+we concatenate the `Query` vector and `Key` vector directly to feed into that neural network.
 
 <div style={{ overflowX: 'auto' }}>
-$$
-    \mathbf{NN}_{\mathbf{hash\space table}}(\mathbf{Anthony\space Chiu}) = \mathbf{NN}_{\mathbf{hash\space table}}(\mathbf{Anthony \space Ch.}) = \mathbf{123456789}
+$$ 
+f_{\mathbf{compatibility}}(\mathbf{q}, \mathbf{k}) \in \R = \mathbf{w}_{\mathbf{add}}^T \tanh(\mathbf{W}_{\mathbf{add}}[\mathbf{q}; \mathbf{k}])
 $$
 </div>
 
-This setting is not related to the Attention Mechanism so much, we are not going to discuss it further.
+where
 
-#### Ranking
+- $[\mathbf{q}; \mathbf{k}] \in \R^{d_q + d_k}$ is the concatenation of the `Query` vector and `Key` vector.
+- $\mathbf{W}_{\mathbf{add}} \in \R^{d_{\mathbf{hidden}} \times (d_q + d_k)}$ and $\mathbf{w}_{\mathbf{add}} \in \R^{d_{\mathbf{hidden}}}$ are the
+  trainable parameters of the neural network.
 
-In this setting, the input of the Neural Network is a key and a value, and the output is the compatibility/alignment score between the key and the value.
-The higher the compatibility/alignment score, the more likely the key and the value are related.
+### Dot-Product Attention and Scaled Dot-Product Attention
 
-For example, we we have have a Neural Network that produces the following compatibility/alignment scores, we reproduces our magic Hash Table behaviour:
+Regarding the angular similarity between two vectors, Dot-Product is a common choice. Dot-Product Attention refers to having the compatibility function as
+the dot-product of the `Query` vector and `Key` vector. [^3]
 
 <div style={{ overflowX: 'auto' }}>
-$$
-    \mathbf{NN}_{\mathbf{hash\space table}}(\mathbf{Anthony\space Chiu}, \mathbf{123456789}) = 0.8\\
-
-    \mathbf{NN}_{\mathbf{hash\space table}}(\mathbf{Anthony\space Chiu}, \mathbf{987654321}) = 0.2\\
-
-    \mathbf{NN}_{\mathbf{hash\space table}}(\mathbf{Anthony\space Ch.}, \mathbf{123456789}) = 0.8\\
-
-    \mathbf{NN}_{\mathbf{hash\space table}}(\mathbf{Anthony\space Ch.}, \mathbf{987654321}) = 0.2\\
-
+$$ 
+f_{\mathbf{compatibility}}(\mathbf{q}, \mathbf{k}) \in \R = \mathbf{q}^T \mathbf{k}
 $$
 </div>
 
-[^1]: [[Website] Wikipedia - Hash table](https://en.wikipedia.org/wiki/Hash_table)
-[^1]: [[Website] Paper with code - Dot-Product Attention](https://paperswithcode.com/method/dot-product-attention)
-[^2]: [[Website] Paper with code - Multiplicative Attention](https://paperswithcode.com/method/multiplicative-attention)
-[^3]: [[Website] Paper with code - Additive Attention](https://paperswithcode.com/method/additive-attention)
+Dot-Product Attention is the simplest compatibility measure form, as there are no hidden learning weights in the compatibility function.
+However, this method assumes both `Query` and `Key` vectors have the same dimension.
+
+Scaled Dot-Product Attention is a variant of Dot-Product Attention, where we scale the dot-product by a factor $\frac{1}{\sqrt{d_k}}$. [^4]
+
+<div style={{ overflowX: 'auto' }}>
+$$ 
+f_{\mathbf{compatibility}}(\mathbf{q}, \mathbf{k}) \in \R = \frac{\mathbf{q}^T \mathbf{k}}{\sqrt{d_k}}
+$$
+</div>
+
+### Parametric vs Non-Parametric Compatibility Functions
+
+We have discussed a Parametric compatibility function (Additive Attention) and a Non-Parametric compatibility function (Dot-Product Attention).
+Parametric compatibility functions are more flexible, as they don't have an assumption on the `Query` and `Key` vectors' dimension.
+
+<div className="text-center">
+  <Image
+    style={{ background: 'white' }}
+    alt="Linear Projections Before Dot-Product"
+    src="/static/images/attention/linear-projections-before-dot-product.png"
+    width="320"
+    height="440"
+  />
+  <div>Fig.3 Linear Projections Before Dot-Product in Transformer</div>
+</div>
+
+However, we can also apply linear projections to the `Query`, `Key`, and `Value` vectors
+before applying a non-parametric compatibility function. This projects the `Query`, `Key`, and `Value` vectors into the same dimension.
+Fig.3 shows the linear projections before the scaled dot-product in the standard Transformer model.
+
+## Different Query, Key, Value Choices
+
+Other than varying the Query-Key compatibility function, we can also change the `Query`, `Key`, and `Value` choices.
+We can combine different compatibility functions and `Query`, `Key`, and `Value` choices
+to construct other attention mechanisms. [^5]
+
+For example, in Transformer, we have Self-Attention with Scaled Dot-Product Compatibility Function.
+
+<div className="text-center">
+  <Image
+    style={{ background: 'white' }}
+    alt="Attention Layers in Transformer"
+    src="/static/images/attention/attention-layers-in-transformer.png"
+    width="533"
+    height="390"
+  />
+  <div>Fig.4 Different Attention Layers in Transformer</div>
+</div>
+
+We can examine different `Query`, `Key`, and `Value` choices in the standard Transformer model in Fig.4.
+
+### Self-Attention [Fig.4 - 1]
+
+When we have the same `Query` vectors, `Key` vectors, and `Value` vectors, we call it self-attention. The example
+stated in the "Information Retrieval in Sequential Data" section above is a self-attention example.
+
+Self-Attention has the following choices:
+
+- `Keys` = `Values` are embedding vectors of each word in a sequence = $\mathbf{k}_{1 \le s \le S}$
+- `Query` is an embedding vector of a word in the same sequence = $\mathbf{q}_{1 \le s \le S}$
+
+### Masked Self-Attention [Fig.4 - 2]
+
+When we have "future" information in a sequence, we might want to mask them to prevent the model from cheating.
+
+Masked Self-Attention has the following choices:
+
+- `Keys` = `Values` are embedding vectors of each "seen" word in a sequence = $\mathbf{k}_{1 \le s1 \le s2}$
+- `Query` is an embedding vector of a word in the same sequence = $\mathbf{q}_{1 \le s2 \le S}$
+
+### Encoder-Decoder [Fig.4 - 3]
+
+When we want to use a source sequence to predict a target sequence, it is common to see an Encoder-Decoder pattern.
+In Fig.3 we can see the connection between the Encoder and the Decoder is an Attention layer. That attention layer has the
+following choices:
+
+- `Keys` = `Values` are embedding vectors of each word in the encoded source sequence.
+- `Query` is an embedding vector of a word in the target Sequence
+
+[^1]: [[Paper] Attention Is All You Need](https://arxiv.org/abs/1706.03762)
+[^2]: [[Website] Paper with code - Additive Attention](https://paperswithcode.com/method/additive-attention)
+[^3]: [[Website] Paper with code - Dot-Product Attention](https://paperswithcode.com/method/dot-product-attention)
 [^4]: [[Website] Paper with code - Scaled Dot-Product Attention](https://paperswithcode.com/method/scaled)
-$$
+[^5]: [[Website] Attention? Attention! | Lil'Log](https://lilianweng.github.io/posts/2018-06-24-attention/)

@@ -217,7 +217,7 @@ def get_adjacency_matrix(inps):
 
 The Graph Convolutional operations are done with the `GraphConv` layer (it is now renamed as `GCNConv`) from the Keras Spektral package[^6]. This method originated from this paper[^8].
 
-The following steps explain the mechanics of a `GraphConv Layer` with $c$ channels applying on a sequence $\mathbf{X} \in \mathbb{R}^{S \times D}$ and a adjacency matrix $\mathbf{A} \in \mathbb{R}^{S \times S}$,
+The following steps explain the mechanics of a `GraphConv Layer` with $c$ channels applying on a sequence $\mathbf{X} \in \R^{S \times D}$ and a adjacency matrix $\mathbf{A} \in \R^{S \times S}$,
 where $S$ and $D$ denotes the sequence length and the feature dimension respectively:
 
 Firstly, compute the renormalization of $\mathbf{A}$ to reduce the impact of super high values in $\mathbf{A}$:
@@ -227,7 +227,7 @@ $$
 \mathbf{\hat{D}^{-\frac{1}{2}}} \cdot \mathbf{\hat{A}} \cdot \mathbf{\hat{D}^{-\frac{1}{2}}}
 $$ 
 </div>
-where $\mathbf{\hat{A}} \in \mathbb{R}^{S \times S}$ from adding self-loops $\mathbf{I} \in \mathbb{R}^{S \times S}$ to $\mathbf{A}$:
+where $\mathbf{\hat{A}} \in \R^{S \times S}$ from adding self-loops $\mathbf{I} \in \R^{S \times S}$ to $\mathbf{A}$:
 
 <div style={{overflowX: "auto"}}>
 $$
@@ -235,7 +235,7 @@ $$
 $$
 </div>
 
-And $\mathbf{\hat{D}} \in \mathbb{R}^{S \times S}$ denotes the degree matrix of $\mathbf{\hat{A}}$,
+And $\mathbf{\hat{D}} \in \R^{S \times S}$ denotes the degree matrix of $\mathbf{\hat{A}}$,
 the degree matrix is a diagonal matrix with its diagnoal values defined as:
 
 <div style={{overflowX: "auto"}}>
