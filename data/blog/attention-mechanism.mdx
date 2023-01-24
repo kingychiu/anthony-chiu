@@ -117,13 +117,15 @@ more compatible than $(\mathbf{q}, \mathbf{k}_3)$.
 
 Let's make up some scores such that only the `Keys` **"eat"** and **"apple"** have a high score with the `Query` **"apple"**.:
 
-<div style={{ overflowX: 'auto' }}>$$ [0.0, 0.0, 0.0, 0.4, 0.6] $$</div>
+$$
+[0.0, 0.0, 0.0, 0.4, 0.6]
+$$
 
 Then the `Output` for the `Query` **"apple"** will be the weighted sum of all `Values`:
 
-<div style={{ overflowX: 'auto' }}>
-  $$ \mathbf{o}=0.4 \times \mathbf{k}_4 + 0.6 \times \mathbf{k}_5 $$
-</div>
+$$
+\mathbf{o}=0.4 \times \mathbf{k}\_4 + 0.6 \times \mathbf{k}\_5
+$$
 
 ## The General Form of Attention Mechanism
 
@@ -141,12 +143,10 @@ The returned output vector $\mathbf{o}$ is in the `Value` space, that's $\mathbf
 Recall the Key-Value setting for Sequential Data above; let's say there is a sentence with length $S$, then there will be $S$ `Key` vectors
 and $S$ `Value` vectors. We can represent them as two matrices:
 
-<div style={{overflowX: "auto"}}>
 $$
 \mathbf{K} \in \R^{S \times d_k} = [\mathbf{k}_1^T, \mathbf{k}_2^T...\mathbf{k}_S^T]\\
 \mathbf{V} \in \R^{S \times d_v} = [\mathbf{v}_1^T, \mathbf{v}_2^T...\mathbf{v}_S^T]
 $$
-</div>
 
 ### Query-key Compatibility Function
 
@@ -154,28 +154,24 @@ A Query-Key compatibility function $f_{\mathbf{compatibility}}: (\R^{d_q}, \R^{d
 maps a `Query` vector and a `Key` vector to a score scaler. The higher the score, the more compatible the `Query` vector and `Key` vector are.
 We will have $S$ compatibility scores:
 
-<div style={{overflowX: "auto"}}>
 $$
 \forall 1 \le s \le S: e_s \in \R = f_{\mathbf{compatibility}}(\mathbf{q}, \mathbf{k}_s)
 $$
-</div>
 
 ### Attention Weights and the Output Vectors
 
 The attention weights are usually defined by applying softmax to the compatibility scores, such that the sum of the weights is 1.
 Here is how we compute these $S$ attention weights:
 
-<div style={{overflowX: "auto"}}>
 $$
 \forall 1 \le s \le S: a_s \in \R = \frac{\exp(e_s)}{\sum_{s=1}^S \exp(e_s)}
 $$
-</div>
 
 Then the `Output` vector $\mathbf{o} \in \R^{d_v}$ is the weighted sum of those $S$ `Value` vectors:
 
-<div style={{ overflowX: 'auto' }}>
-  $$ \mathbf{o} \in \R^{d_v} = \sum_s^S a_s \mathbf{v}_s $$
-</div>
+$$
+\mathbf{o} \in \R^{d_v} = \sum_s^S a_s \mathbf{v}_s
+$$
 
 ### Pytorch Implementation of an Abstract Attention Module
 
@@ -245,17 +241,61 @@ Additive Attention refers to a compatibility function approximated by a neural n
 It is a direct approximation approach to get a compatibility function. Because in Additive Attention,
 we concatenate the `Query` vector and `Key` vector directly to feed into that neural network.
 
-<div style={{ overflowX: 'auto' }}>
-$$ 
+$$
 f_{\mathbf{compatibility}}(\mathbf{q}, \mathbf{k}) \in \R = \mathbf{w}_{\mathbf{add}}^T \tanh(\mathbf{W}_{\mathbf{add}}[\mathbf{q}; \mathbf{k}])
 $$
-</div>
 
 where
 
 - $[\mathbf{q}; \mathbf{k}] \in \R^{d_q + d_k}$ is the concatenation of the `Query` vector and `Key` vector.
 - $\mathbf{W}_{\mathbf{add}} \in \R^{d_{\mathbf{hidden}} \times (d_q + d_k)}$ and $\mathbf{w}_{\mathbf{add}} \in \R^{d_{\mathbf{hidden}}}$ are the
   trainable parameters of the neural network.
+
+### Dot-Product Attention and Scaled Dot-Product Attention
+
+Regarding the angular similarity between two vectors, Dot-Product is a common choice. Dot-Product Attention refers to having the compatibility function as
+the dot-product of the `Query` vector and `Key` vector. [^3]
+
+$$
+f_{\mathbf{compatibility}}(\mathbf{q}, \mathbf{k}) \in \R = \mathbf{q}^T \mathbf{k}
+$$
+
+Dot-Product Attention is the simplest compatibility measure form, as there are no hidden learning weights in the compatibility function.
+However, this method assumes both `Query` and `Key` vectors have the same dimension.
+
+Scaled Dot-Product Attention is a variant of Dot-Product Attention, where we scale the dot-product by a factor $\frac{1}{\sqrt{d_k}}$. [^4]
+
+$$
+f_{\mathbf{compatibility}}(\mathbf{q}, \mathbf{k}) \in \R = \frac{\mathbf{q}^T \mathbf{k}}{\sqrt{d_k}}
+$$
+
+Note: The original Transformer paper [^4] shows the matrix form of the scaled dot-product attention.
+The formula above is the vector form that takes two vectors instead of matrices.
+
+### Parametric vs Non-Parametric Compatibility Functions
+
+We have discussed a Parametric compatibility function (Additive Attention) and a Non-Parametric compatibility function (Dot-Product Attention).
+Parametric compatibility functions are more flexible, as they don't have an assumption on the `Query` and `Key` vectors' dimension.
+
+<div className="text-center">
+  <Image
+    style={{ background: 'white' }}
+    alt="Linear Projections Before Dot-Product"
+    src="/static/images/attention/linear-projections-before-dot-product.png"
+    width="320"
+    height="440"
+  />
+  <div>Fig.3 Linear Projections Before Dot-Product in Transformer</div>
+</div>
+
+However, we can apply linear projections to the `Query`, `Key`, and `Value` vectors
+before applying a non-parametric compatibility function. This projects the `Query`, `Key`, and `Value` vectors into the same dimension.
+Fig.3 shows the linear projections before the scaled dot-product in the standard Transformer model.
+
+### Pytorch Implementation of Different Compatibility Functions
+
+Here we implement an different compatibility functions in Pytorch. The whole implementation is based on the matrix form of the attention mechanism.
+We assume the second-last of the tensors is the sequence length, and the last is the embedding dimension.
 
 ```python
 # Matrix Form Pytorch Implementation of Additive Attention
@@ -298,20 +338,6 @@ out = attention(value, key, query)
 out.size() # torch.Size([100, 20, 10])
 ```
 
-### Dot-Product Attention and Scaled Dot-Product Attention
-
-Regarding the angular similarity between two vectors, Dot-Product is a common choice. Dot-Product Attention refers to having the compatibility function as
-the dot-product of the `Query` vector and `Key` vector. [^3]
-
-<div style={{ overflowX: 'auto' }}>
-$$ 
-f_{\mathbf{compatibility}}(\mathbf{q}, \mathbf{k}) \in \R = \mathbf{q}^T \mathbf{k}
-$$
-</div>
-
-Dot-Product Attention is the simplest compatibility measure form, as there are no hidden learning weights in the compatibility function.
-However, this method assumes both `Query` and `Key` vectors have the same dimension.
-
 ```python
 # Matrix Form Pytorch Implementation of Dot-Product Attention
 class DotProductAttention(AbstractAttention):
@@ -331,17 +357,6 @@ out = attention(value, key, query)
 out.size() # torch.Size([100, 20, 10])
 ```
 
-Scaled Dot-Product Attention is a variant of Dot-Product Attention, where we scale the dot-product by a factor $\frac{1}{\sqrt{d_k}}$. [^4]
-
-<div style={{ overflowX: 'auto' }}>
-$$ 
-f_{\mathbf{compatibility}}(\mathbf{q}, \mathbf{k}) \in \R = \frac{\mathbf{q}^T \mathbf{k}}{\sqrt{d_k}}
-$$
-</div>
-
-Note: The original Transformer paper [^4] shows the matrix form of the scaled dot-product attention.
-The formula above is the vector form that takes two vectors instead of matrices.
-
 ```python
 # Matrix Form Pytorch Implementation of Scaled Dot-Product Attention
 class ScaledDotProductAttention(AbstractAttention):
@@ -360,26 +375,6 @@ out = attention(value, key, query)
 
 out.size() # torch.Size([100, 20, 10])
 ```
-
-### Parametric vs Non-Parametric Compatibility Functions
-
-We have discussed a Parametric compatibility function (Additive Attention) and a Non-Parametric compatibility function (Dot-Product Attention).
-Parametric compatibility functions are more flexible, as they don't have an assumption on the `Query` and `Key` vectors' dimension.
-
-<div className="text-center">
-  <Image
-    style={{ background: 'white' }}
-    alt="Linear Projections Before Dot-Product"
-    src="/static/images/attention/linear-projections-before-dot-product.png"
-    width="320"
-    height="440"
-  />
-  <div>Fig.3 Linear Projections Before Dot-Product in Transformer</div>
-</div>
-
-However, we can also apply linear projections to the `Query`, `Key`, and `Value` vectors
-before applying a non-parametric compatibility function. This projects the `Query`, `Key`, and `Value` vectors into the same dimension.
-Fig.3 shows the linear projections before the scaled dot-product in the standard Transformer model.
 
 ## Different Query, Key, Value Choices
 
@@ -413,14 +408,6 @@ Self-Attention has the following choices:
 - `Query` is an embedding vector of a word in the same sequence = $\mathbf{q}_{1 \le s \le S}$
 
 ```python
-# Matrix Form Pytorch Implementation of Self-Attention
-class ScaledDotProductAttention(AbstractAttention):
-  def __init__(self):
-    super().__init__()
-
-  def compute_compatibility_score(self, query: torch.Tensor, key: torch.Tensor):
-    return torch.matmul(query, torch.transpose(key, -1, -2)) / query.size()[-1]
-
 attention = ScaledDotProductAttention()
 
 value = torch.rand(100, 20, 10)
