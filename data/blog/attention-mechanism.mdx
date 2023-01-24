@@ -39,7 +39,7 @@ innovation of Scaled Dot-Product Attention is to have a different Query-Key comp
 ## Information Retrieval System
 
 An Information Retrieval System stores `Values` indexed by `Keys`. A `Query` is used to retrieve
-related Key-Value pairs. The system returns the `Output` that is the retrieved `Value` or transformed `Value`.
+related Key-Value pairs. The system returns an `Output` that is the associated `Value` or a transformed version of the associated `Value`.
 
 ### Exact Matching
 
@@ -90,7 +90,7 @@ For example, in Fig.2,
    will be $1000 \times 0.9 + 2000 \times 0.1 + 3000 \times 0.0 = 1100$.
 
 2. If the scores are $[1.0, 0.0, 0.0]$ respectively, the returned `Output`
-   will be $1000$, the same as retrieving the `Value` with the highest associated Query-Key compatibility score.
+   will be $1000$, the same as retrieving the `Value` with the highest associated compatibility score.
 
 ### Information Retrieval in Sequential Data
 
@@ -102,11 +102,11 @@ For a sentence: **"i like to eat apple"**, we want to know if the word **"apple"
 
 Let's have the following `Querys`, `Keys`, and `Values` choices:
 
-- `Keys` = `Values` as the embedding vectors of each word = $\mathbf{k}_{1 \le s \le S}$
+- `Keys` = `Values` as five embedding vectors of each word = $\mathbf{k}_{1 \le s \le 5}$
 - `Query` as the embedding vector of the word **"apple"** = $\mathbf{q}$
 
 To understand if the word **"apple"** is a fruit or a company,
-we need to know the context of the sentence. We can use Query-Key compatibility to determine which words we should focus on to decide if
+we need to know the context of the sentence. We can compute compatibility scores to determine which words we should focus on to decide if
 the word **"apple"** is a fruit or a company.
 
 Ideally, we want the `Key` **"eat"** to have a higher score than the other `Keys`
@@ -216,6 +216,9 @@ $$
 f_{\mathbf{compatibility}}(\mathbf{q}, \mathbf{k}) \in \R = \frac{\mathbf{q}^T \mathbf{k}}{\sqrt{d_k}}
 $$
 </div>
+
+Note: The original Transformer paper [^4] shows the matrix form of the scaled dot-product attention.
+The formula above is the vector form that takes two vectors instead of matrices.
 
 ### Parametric vs Non-Parametric Compatibility Functions
 
