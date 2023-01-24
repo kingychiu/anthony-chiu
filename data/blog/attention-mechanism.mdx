@@ -6,7 +6,6 @@ tags:
   [
     'Attention Mechanism',
     'Query, Key, Value and Output',
-    'Additive Attention',
     'Bahdanau Attention',
     'Dot-Product Attention',
     'Scaled Dot-Product Attention',
@@ -16,7 +15,7 @@ tags:
 draft: false
 layout: PostSimple
 summary: 'Explain Query, Key, Value and Output in Attention Mechanism with an analogy of Information Retrieval System. 
-Discuss different Attention Mechanisms, including Additive/Bahdanau, Dot-Product, Scaled Dot-Product Attention, and Self Attention.
+Discuss different Attention Mechanisms, including Dot-Product, Scaled Dot-Product Attention, and Self Attention.
 Talk about the Query, Key, Value, and Output choices in the standard Transformer.'
 images: ['/static/images/attention/information-retrieval-fuzzy.png']
 authors: ['default']
@@ -182,6 +181,8 @@ We assume the second-last of the tensors is the sequence length, and the last is
 ```python
 import torch
 
+import torch
+
 class AbstractAttention(torch.nn.Module):
   """
   We assume the second-last of the tensors is the sequence length,
@@ -197,61 +198,52 @@ class AbstractAttention(torch.nn.Module):
       key (torch.Tensor): The Key tensor.
       query (torch.Tensor): The Query.
     Return:
-      torch.Tensor: The score tensor with the last two dimensions equals the sequence length.
+      torch.Tensor: The score tensor with the last two dimensions = (, S_decode, S_encode)
     """
     raise NotImplemented
 
-  def forward(self, value: torch.Tensor, key: torch.Tensor, query: torch.Tensor):
+  def forward(
+      self,
+      value: torch.Tensor,
+      key: torch.Tensor,
+      query: torch.Tensor,
+    ):
     """
     Args:
-      value (torch.Tensor): The Value tensor.
-      key (torch.Tensor): The Key tensor.
-      query (torch.Tensor): The Query.
+      value (torch.Tensor): The Value tensor. Last two dimensions = (, S_encode, D_v)
+      key (torch.Tensor): The Key tensor. Last two dimensions = (, S_encode, D_k)
+      query (torch.Tensor): The Query.  Last two dimensions = (, S_decode, D_q)
     Return:
-      torch.Tensor: The Output tensor with the last two dimensions is the same as the Value tensor.
+      torch.Tensor: The Output tensor. Last two dimensions = (, S_decode, D_v)
     """
 
     # The attentions are among the second last dimension.
-    seq_len = value.size()[-2]
-    assert value.size()[-2] == key.size()[-2] == query.size()[-2]
+    encode_seq_len = value.size()[-2]
+    decode_seq_len = query.size()[-2]
+    assert value.size()[-2] == key.size()[-2]
 
     # Compute the compatibility scores. The scoring is based on the last
     # dimension.
     compatibility_scores = self.compute_compatibility_score(query, key)
-    assert compatibility_scores.size()[-2:] == (seq_len, seq_len)
+    assert compatibility_scores.size()[-2:] == (decode_seq_len, encode_seq_len)
 
     # Compute softmax over the second last dimension
     attention_weights = torch.nn.functional.softmax(
         compatibility_scores, dim=-1
     )
-    assert attention_weights.size()[-2:] == (seq_len, seq_len)
+    assert attention_weights.size()[-2:] == (decode_seq_len, encode_seq_len)
 
     # Compute matrix multiplication over the last two dimensions
     output = torch.matmul(attention_weights, value)
-    assert output.size() == value.size()
+    assert output.size()[-2] == decode_seq_len
+    assert output.size()[-1] == value.size()[-1]
 
     return output
 ```
 
 ## Different Query-Key Compatibility Functions
 
-### Additive / Bahdanau Attention
-
-Additive Attention refers to a compatibility function approximated by a neural network. [^2]
-It is a direct approximation approach to get a compatibility function. Because in Additive Attention,
-we concatenate the `Query` vector and `Key` vector directly to feed into that neural network.
-
-$$
-f_{\mathbf{compatibility}}(\mathbf{q}, \mathbf{k}) \in \R = \mathbf{w}_{\mathbf{add}}^T \tanh(\mathbf{W}_{\mathbf{add}}[\mathbf{q}; \mathbf{k}])
-$$
-
-where
-
-- $[\mathbf{q}; \mathbf{k}] \in \R^{d_q + d_k}$ is the concatenation of the `Query` vector and `Key` vector.
-- $\mathbf{W}_{\mathbf{add}} \in \R^{d_{\mathbf{hidden}} \times (d_q + d_k)}$ and $\mathbf{w}_{\mathbf{add}} \in \R^{d_{\mathbf{hidden}}}$ are the
-  trainable parameters of the neural network.
-
-### Dot-Product Attention and Scaled Dot-Product Attention
+### Dot-Product Attention
 
 Regarding the angular similarity between two vectors, Dot-Product is a common choice. Dot-Product Attention refers to having the compatibility function as
 the dot-product of the `Query` vector and `Key` vector. [^3]
@@ -263,6 +255,8 @@ $$
 Dot-Product Attention is the simplest compatibility measure form, as there are no hidden learning weights in the compatibility function.
 However, this method assumes both `Query` and `Key` vectors have the same dimension.
 
+### Scaled Dot-Product Attention
+
 Scaled Dot-Product Attention is a variant of Dot-Product Attention, where we scale the dot-product by a factor $\frac{1}{\sqrt{d_k}}$. [^4]
 
 $$
@@ -272,10 +266,7 @@ $$
 Note: The original Transformer paper [^4] shows the matrix form of the scaled dot-product attention.
 The formula above is the vector form that takes two vectors instead of matrices.
 
-### Parametric vs Non-Parametric Compatibility Functions
-
-We have discussed a Parametric compatibility function (Additive Attention) and a Non-Parametric compatibility function (Dot-Product Attention).
-Parametric compatibility functions are more flexible, as they don't have an assumption on the `Query` and `Key` vectors' dimension.
+### Query, Key, and Value Linear Transformation
 
 <div className="text-center">
   <Image
@@ -285,58 +276,18 @@ Parametric compatibility functions are more flexible, as they don't have an assu
     width="320"
     height="440"
   />
-  <div>Fig.3 Linear Projections Before Dot-Product in Transformer</div>
+  <div>Fig.3 Linear Transformation Before Dot-Product in Transformer</div>
 </div>
 
-However, we can apply linear projections to the `Query`, `Key`, and `Value` vectors
-before applying a non-parametric compatibility function. This projects the `Query`, `Key`, and `Value` vectors into the same dimension.
-Fig.3 shows the linear projections before the scaled dot-product in the standard Transformer model.
+If the original `Query`, `Key`, `Valye` vectors are not the same size.
+We can apply linear transformations to the vectors before applying a compatibility function.
+This projects the input vectors into the same dimension. Fig.3 shows the linear transformations
+before the scaled dot-product in the standard Transformer model.
 
 ### Pytorch Implementation of Different Compatibility Functions
 
-Here we implement an different compatibility functions in Pytorch. The whole implementation is based on the matrix form of the attention mechanism.
+Here we implement different compatibility functions in Pytorch. The whole implementation is based on the matrix form of the attention mechanism.
 We assume the second-last of the tensors is the sequence length, and the last is the embedding dimension.
-
-```python
-# Matrix Form Pytorch Implementation of Additive Attention
-class AdditiveAttention(AbstractAttention):
-  def __init__(self, key_dim: int, query_dim: int, hidden_dim: int):
-    """
-    Args:
-      key_dim (int): The embedding dimension of the Value tensor.
-      query_dim (int): The embedding dimension of the Value tensor.
-      hidden_dim (int): this controls the size of the hidden tensor and the
-        size of the learnable weights.
-    """
-    super().__init__()
-
-    self.linear = torch.nn.Linear(query_dim + key_dim, hidden_dim)
-    self.w = torch.nn.Parameter(torch.Tensor(hidden_dim, 1))
-
-  def compute_compatibility_score(self, query: torch.Tensor, key: torch.Tensor):
-    seq_len = query.size()[-2]
-    # Concat the embeddings of the Query tensor and Key tensor
-    concated_tensor = torch.concat((query, key), dim=-1)
-    # Feed a 1-layer mlp
-    hidden_tensor = torch.tanh(
-        self.linear(concated_tensor)
-    )
-    # Multipy with another parameter
-    return torch.matmul(hidden_tensor, self.w.repeat(1, seq_len))
-
-value_dim = 10
-key_dim = 5
-query_dim = 2
-hidden_dim = 4
-attention = AdditiveAttention(key_dim, query_dim, hidden_dim)
-
-value = torch.rand(100, 20, value_dim)
-key = torch.rand(100, 20, key_dim)
-query = torch.rand(100, 20, query_dim)
-out = attention(value, key, query)
-
-out.size() # torch.Size([100, 20, 10])
-```
 
 ```python
 # Matrix Form Pytorch Implementation of Dot-Product Attention
@@ -351,10 +302,10 @@ attention = DotProductAttention()
 
 value = torch.rand(100, 20, 10)
 key = torch.rand(100, 20, 5)
-query = torch.rand(100, 20, 5)
+query = torch.rand(100, 10, 5)
 out = attention(value, key, query)
 
-out.size() # torch.Size([100, 20, 10])
+out.size() # torch.Size([100, 10, 10])
 ```
 
 ```python
@@ -370,10 +321,10 @@ attention = ScaledDotProductAttention()
 
 value = torch.rand(100, 20, 10)
 key = torch.rand(100, 20, 5)
-query = torch.rand(100, 20, 5)
+query = torch.rand(100, 10, 5)
 out = attention(value, key, query)
 
-out.size() # torch.Size([100, 20, 10])
+out.size() # torch.Size([100, 10, 10])
 ```
 
 ## Different Query, Key, Value Choices
