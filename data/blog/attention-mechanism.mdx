@@ -117,19 +117,12 @@ more compatible than $(\mathbf{q}, \mathbf{k}_3)$.
 
 Let's make up some scores such that only the `Keys` **"eat"** and **"apple"** have a high score with the `Query` **"apple"**.:
 
-<div style={{ overflowX: 'auto' }}>
-$$ 
-[0.0, 0.0, 0.0, 0.4, 0.6] 
-$$
-</div>
-
+<div style={{ overflowX: 'auto' }}>$$ [0.0, 0.0, 0.0, 0.4, 0.6] $$</div>
 
 Then the `Output` for the `Query` **"apple"** will be the weighted sum of all `Values`:
 
 <div style={{ overflowX: 'auto' }}>
-$$ 
-\mathbf{o}=0.4 \times \mathbf{k}_4 + 0.6 \times \mathbf{k}_5 
-$$
+  $$ \mathbf{o}=0.4 \times \mathbf{k}_4 + 0.6 \times \mathbf{k}_5 $$
 </div>
 
 ## The General Form of Attention Mechanism
@@ -181,10 +174,68 @@ $$
 Then the `Output` vector $\mathbf{o} \in \R^{d_v}$ is the weighted sum of those $S$ `Value` vectors:
 
 <div style={{ overflowX: 'auto' }}>
-$$ 
-\mathbf{o} \in \R^{d_v} = \sum_s^S a_s \mathbf{v}_s 
-$$
+  $$ \mathbf{o} \in \R^{d_v} = \sum_s^S a_s \mathbf{v}_s $$
 </div>
+
+### Pytorch Implementation of an Abstract Attention Module
+
+Here we implement an abstract attention module in Pytorch. The `compute_compatibility_score` method is the
+compatibility function $f_{\mathbf{compatibility}}$. The whole implementation is based on the matrix form of the attention mechanism.
+We assume the second-last of the tensors is the sequence length, and the last is the embedding dimension.
+
+```python
+import torch
+
+class AbstractAttention(torch.nn.Module):
+  """
+  We assume the second-last of the tensors is the sequence length,
+  and the last is the embedding dimension.
+  """
+
+  def __init__(self):
+    super().__init__()
+
+  def compute_compatibility_score(self, query: torch.Tensor, key: torch.Tensor):
+    """
+    Args:
+      key (torch.Tensor): The Key tensor.
+      query (torch.Tensor): The Query.
+    Return:
+      torch.Tensor: The score tensor with the last two dimensions equals the sequence length.
+    """
+    raise NotImplemented
+
+  def forward(self, value: torch.Tensor, key: torch.Tensor, query: torch.Tensor):
+    """
+    Args:
+      value (torch.Tensor): The Value tensor.
+      key (torch.Tensor): The Key tensor.
+      query (torch.Tensor): The Query.
+    Return:
+      torch.Tensor: The Output tensor with the last two dimensions is the same as the Value tensor.
+    """
+
+    # The attentions are among the second last dimension.
+    seq_len = value.size()[-2]
+    assert value.size()[-2] == key.size()[-2] == query.size()[-2]
+
+    # Compute the compatibility scores. The scoring is based on the last
+    # dimension.
+    compatibility_scores = self.compute_compatibility_score(query, key)
+    assert compatibility_scores.size()[-2:] == (seq_len, seq_len)
+
+    # Compute softmax over the second last dimension
+    attention_weights = torch.nn.functional.softmax(
+        compatibility_scores, dim=-1
+    )
+    assert attention_weights.size()[-2:] == (seq_len, seq_len)
+
+    # Compute matrix multiplication over the last two dimensions
+    output = torch.matmul(attention_weights, value)
+    assert output.size() == value.size()
+
+    return output
+```
 
 ## Different Query-Key Compatibility Functions
 
@@ -206,6 +257,47 @@ where
 - $\mathbf{W}_{\mathbf{add}} \in \R^{d_{\mathbf{hidden}} \times (d_q + d_k)}$ and $\mathbf{w}_{\mathbf{add}} \in \R^{d_{\mathbf{hidden}}}$ are the
   trainable parameters of the neural network.
 
+```python
+# Matrix Form Pytorch Implementation of Additive Attention
+class AdditiveAttention(AbstractAttention):
+  def __init__(self, key_dim: int, query_dim: int, hidden_dim: int):
+    """
+    Args:
+      key_dim (int): The embedding dimension of the Value tensor.
+      query_dim (int): The embedding dimension of the Value tensor.
+      hidden_dim (int): this controls the size of the hidden tensor and the
+        size of the learnable weights.
+    """
+    super().__init__()
+
+    self.linear = torch.nn.Linear(query_dim + key_dim, hidden_dim)
+    self.w = torch.nn.Parameter(torch.Tensor(hidden_dim, 1))
+
+  def compute_compatibility_score(self, query: torch.Tensor, key: torch.Tensor):
+    seq_len = query.size()[-2]
+    # Concat the embeddings of the Query tensor and Key tensor
+    concated_tensor = torch.concat((query, key), dim=-1)
+    # Feed a 1-layer mlp
+    hidden_tensor = torch.tanh(
+        self.linear(concated_tensor)
+    )
+    # Multipy with another parameter
+    return torch.matmul(hidden_tensor, self.w.repeat(1, seq_len))
+
+value_dim = 10
+key_dim = 5
+query_dim = 2
+hidden_dim = 4
+attention = AdditiveAttention(key_dim, query_dim, hidden_dim)
+
+value = torch.rand(100, 20, value_dim)
+key = torch.rand(100, 20, key_dim)
+query = torch.rand(100, 20, query_dim)
+out = attention(value, key, query)
+
+out.size() # torch.Size([100, 20, 10])
+```
+
 ### Dot-Product Attention and Scaled Dot-Product Attention
 
 Regarding the angular similarity between two vectors, Dot-Product is a common choice. Dot-Product Attention refers to having the compatibility function as
@@ -220,6 +312,25 @@ $$
 Dot-Product Attention is the simplest compatibility measure form, as there are no hidden learning weights in the compatibility function.
 However, this method assumes both `Query` and `Key` vectors have the same dimension.
 
+```python
+# Matrix Form Pytorch Implementation of Dot-Product Attention
+class DotProductAttention(AbstractAttention):
+  def __init__(self):
+    super().__init__()
+
+  def compute_compatibility_score(self, query: torch.Tensor, key: torch.Tensor):
+    return torch.matmul(query, torch.transpose(key, -1, -2))
+
+attention = DotProductAttention()
+
+value = torch.rand(100, 20, 10)
+key = torch.rand(100, 20, 5)
+query = torch.rand(100, 20, 5)
+out = attention(value, key, query)
+
+out.size() # torch.Size([100, 20, 10])
+```
+
 Scaled Dot-Product Attention is a variant of Dot-Product Attention, where we scale the dot-product by a factor $\frac{1}{\sqrt{d_k}}$. [^4]
 
 <div style={{ overflowX: 'auto' }}>
@@ -230,6 +341,25 @@ $$
 
 Note: The original Transformer paper [^4] shows the matrix form of the scaled dot-product attention.
 The formula above is the vector form that takes two vectors instead of matrices.
+
+```python
+# Matrix Form Pytorch Implementation of Scaled Dot-Product Attention
+class ScaledDotProductAttention(AbstractAttention):
+  def __init__(self):
+    super().__init__()
+
+  def compute_compatibility_score(self, query: torch.Tensor, key: torch.Tensor):
+    return torch.matmul(query, torch.transpose(key, -1, -2)) / query.size()[-1]
+
+attention = ScaledDotProductAttention()
+
+value = torch.rand(100, 20, 10)
+key = torch.rand(100, 20, 5)
+query = torch.rand(100, 20, 5)
+out = attention(value, key, query)
+
+out.size() # torch.Size([100, 20, 10])
+```
 
 ### Parametric vs Non-Parametric Compatibility Functions
 
@@ -281,6 +411,23 @@ Self-Attention has the following choices:
 
 - `Keys` = `Values` are embedding vectors of each word in a sequence = $\mathbf{k}_{1 \le s \le S}$
 - `Query` is an embedding vector of a word in the same sequence = $\mathbf{q}_{1 \le s \le S}$
+
+```python
+# Matrix Form Pytorch Implementation of Self-Attention
+class ScaledDotProductAttention(AbstractAttention):
+  def __init__(self):
+    super().__init__()
+
+  def compute_compatibility_score(self, query: torch.Tensor, key: torch.Tensor):
+    return torch.matmul(query, torch.transpose(key, -1, -2)) / query.size()[-1]
+
+attention = ScaledDotProductAttention()
+
+value = torch.rand(100, 20, 10)
+out = attention(value, value, value)
+
+out.size() # torch.Size([100, 20, 10])
+```
 
 ### Masked Self-Attention [Fig.4 - 2]
 
