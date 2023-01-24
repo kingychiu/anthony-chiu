@@ -98,12 +98,14 @@ We have discussed the Query-Key compatibility in terms of an Information Retriev
 Deep Learning? We can use different `Querys`, `Keys`, and `Values` choices for various NLP tasks. Let's
 consider a simple task below:
 
-For a sentence: **"i like to eat apple"**, we want to know if the word **"apple"** is a fruit or a company.
+For a 5-word sentence: **"i like to eat apple"**, we want to know if the word **"apple"** is a fruit or a company.
 
 Let's have the following `Querys`, `Keys`, and `Values` choices:
 
 - `Keys` = `Values` as five embedding vectors of each word = $\mathbf{k}_{1 \le s \le 5}$
 - `Query` as the embedding vector of the word **"apple"** = $\mathbf{q}$
+
+Note: This configuration is the same as the Self-Attention (Will be discussed below).
 
 To understand if the word **"apple"** is a fruit or a company,
 we need to know the context of the sentence. We can compute compatibility scores to determine which words we should focus on to decide if
