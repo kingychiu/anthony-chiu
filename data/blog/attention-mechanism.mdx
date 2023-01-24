@@ -115,12 +115,19 @@ more compatible than $(\mathbf{q}, \mathbf{k}_3)$.
 
 Let's make up some scores such that only the `Keys` **"eat"** and **"apple"** have a high score with the `Query` **"apple"**.:
 
-<div style={{ overflowX: 'auto' }}>$$ [0.0, 0.0, 0.0, 0.4, 0.6] $$</div>
+<div style={{ overflowX: 'auto' }}>
+$$ 
+[0.0, 0.0, 0.0, 0.4, 0.6] 
+$$
+</div>
+
 
 Then the `Output` for the `Query` **"apple"** will be the weighted sum of all `Values`:
 
 <div style={{ overflowX: 'auto' }}>
-  $$ \mathbf{o}=0.4 \times \mathbf{k}_4 + 0.6 \times \mathbf{k}_5 $$
+$$ 
+\mathbf{o}=0.4 \times \mathbf{k}_4 + 0.6 \times \mathbf{k}_5 
+$$
 </div>
 
 ## The General Form of Attention Mechanism
@@ -172,7 +179,9 @@ $$
 Then the `Output` vector $\mathbf{o} \in \R^{d_v}$ is the weighted sum of those $S$ `Value` vectors:
 
 <div style={{ overflowX: 'auto' }}>
-  $$ \mathbf{o} \in \R^{d_v} = \sum_s^S a_s \mathbf{v}_s $$
+$$ 
+\mathbf{o} \in \R^{d_v} = \sum_s^S a_s \mathbf{v}_s 
+$$
 </div>
 
 ## Different Query-Key Compatibility Functions
