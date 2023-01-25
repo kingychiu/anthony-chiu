@@ -195,14 +195,11 @@ class AbstractAttention(torch.nn.Module):
       self,
       query: torch.Tensor,
       key: torch.Tensor,
-      attention_mask: typing.Optional[torch.Tensor] = None,
   ):
     """
     Args:
       key (torch.Tensor): The Key tensor.
       query (torch.Tensor): The Query.
-      attention_mask: typing.Optional[torch.Tensor]: The mask for post-process
-        the calculated scores. (S_decode, S_encode)
     Return:
       torch.Tensor: The score tensor with the last two dimensions = (, S_decode, S_encode)
     """
