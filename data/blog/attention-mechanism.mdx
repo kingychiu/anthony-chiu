@@ -349,7 +349,7 @@ For example, in Transformer, we have Self-Attention with Scaled Dot-Product Comp
 
 We can examine different `Query`, `Key`, and `Value` choices in the standard Transformer model in Fig.4.
 
-### Self-Attention [Fig.4 - 1]
+### Self-Attention [Fig.4 - 1, 2]
 
 When we have the same `Query` vectors, `Key` vectors, and `Value` vectors, we call it self-attention. The example
 stated in the "Information Retrieval in Sequential Data" section above is a self-attention example.
@@ -367,15 +367,6 @@ out = attention(value, value, value)
 
 out.size() # torch.Size([100, 20, 10])
 ```
-
-### Masked Self-Attention [Fig.4 - 2]
-
-When we have "future" information in a sequence, we might want to mask them to prevent the model from cheating.
-
-Masked Self-Attention has the following choices:
-
-- `Keys` = `Values` are embedding vectors of each "seen" word in a sequence = $\mathbf{k}_{1 \le s1 \le s2}$
-- `Query` is an embedding vector of a word in the same sequence = $\mathbf{q}_{1 \le s2 \le S}$
 
 ### Encoder-Decoder [Fig.4 - 3]
 
