@@ -236,7 +236,7 @@ class AbstractAttention(torch.nn.Module):
 
     # We are setting unwanted score to -inf, it is because
     # 1. This gives an 0 attention weight after applying Softmax
-    # 2. There can be negative value in the scores matrix, therefore 0 is not
+    # 2. There can be negative values in the scores matrix, therefore 0 is not
     #   a good choice for the fill value.
     if attention_mask is not None:
       scores = scores.masked_fill(attention_mask == 0, torch.Float('-inf'))
@@ -383,11 +383,38 @@ Self-Attention has the following choices:
 
 ```python
 attention = ScaledDotProductAttention()
-value = torch.rand(100, 20, 10)
+
+seq_len = 3
+emb_dim = 5
+value = torch.rand(2, seq_len, emb_dim)
 out, attention_weights = attention(value, value, value)
 
-# (torch.Size([100, 20, 10]), torch.Size([100, 20, 20]))
+# (torch.Size([2, 3, 5]), torch.Size([2, 3, 3]))
 out.size(), attention_weights.size()
+```
+
+The masked self-attention is a variant of self-attention where we mask the attention weights of the future words:
+
+```python
+attention = ScaledDotProductAttention()
+
+seq_len = 3
+emb_dim = 5
+
+# Construct a attention mask (, S_decode, S_encode)
+prev_token_mask = torch.zeros((seq_len, seq_len))
+for decode_idx in range(seq_len):
+  # Only enable the encode indices that are less than or equal to the
+  # decode idx
+  prev_token_mask[decode_idx][0: decode_idx + 1] = 1
+
+value = torch.rand(1, seq_len, emb_dim)
+out, attention_weights = attention(value, value, value, attention_mask=prev_token_mask)
+
+# tensor([[[1.0000, 0.0000, 0.0000],
+#          [0.4597, 0.5403, 0.0000],
+#          [0.3136, 0.3519, 0.3345]]])
+attention_weights
 ```
 
 ### Encoder-Decoder [Fig.4 - 3]
