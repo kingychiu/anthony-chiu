@@ -180,8 +180,7 @@ We assume the second-last of the tensors is the sequence length, and the last is
 
 ```python
 import torch
-
-import torch
+import typing
 
 class AbstractAttention(torch.nn.Module):
   """
@@ -192,11 +191,18 @@ class AbstractAttention(torch.nn.Module):
   def __init__(self):
     super().__init__()
 
-  def compute_compatibility_score(self, query: torch.Tensor, key: torch.Tensor):
+  def compute_compatibility_score(
+      self,
+      query: torch.Tensor,
+      key: torch.Tensor,
+      attention_mask: typing.Optional[torch.Tensor] = None,
+  ):
     """
     Args:
       key (torch.Tensor): The Key tensor.
       query (torch.Tensor): The Query.
+      attention_mask: typing.Optional[torch.Tensor]: The mask for post-process
+        the calculated scores. (S_decode, S_encode)
     Return:
       torch.Tensor: The score tensor with the last two dimensions = (, S_decode, S_encode)
     """
@@ -207,12 +213,16 @@ class AbstractAttention(torch.nn.Module):
       value: torch.Tensor,
       key: torch.Tensor,
       query: torch.Tensor,
+      attention_mask: typing.Optional[torch.Tensor] = None,
     ):
     """
     Args:
       value (torch.Tensor): The Value tensor. Last two dimensions = (, S_encode, D_v)
       key (torch.Tensor): The Key tensor. Last two dimensions = (, S_encode, D_k)
       query (torch.Tensor): The Query.  Last two dimensions = (, S_decode, D_q)
+      attention_mask: typing.Optional[torch.Tensor]: It is a binary mask being
+        passed into the compute_compatibility_score function to post-process
+        the calculated scores. (S_decode, S_encode)
     Return:
       torch.Tensor: The Output tensor. Last two dimensions = (, S_decode, D_v)
     """
@@ -227,6 +237,13 @@ class AbstractAttention(torch.nn.Module):
     compatibility_scores = self.compute_compatibility_score(query, key)
     assert compatibility_scores.size()[-2:] == (decode_seq_len, encode_seq_len)
 
+    # We are setting unwanted score to -inf, it is because
+    # 1. This gives an 0 attention weight after applying Softmax
+    # 2. There can be negative value in the scores matrix, therefore 0 is not
+    #   a good choice for the fill value.
+    if attention_mask is not None:
+      scores = scores.masked_fill(attention_mask == 0, torch.Float('-inf'))
+
     # Compute softmax over the second last dimension
     attention_weights = torch.nn.functional.softmax(
         compatibility_scores, dim=-1
@@ -238,7 +255,7 @@ class AbstractAttention(torch.nn.Module):
     assert output.size()[-2] == decode_seq_len
     assert output.size()[-1] == value.size()[-1]
 
-    return output
+    return output, attention_weights
 ```
 
 ## Different Query-Key Compatibility Functions
@@ -295,17 +312,21 @@ class DotProductAttention(AbstractAttention):
   def __init__(self):
     super().__init__()
 
-  def compute_compatibility_score(self, query: torch.Tensor, key: torch.Tensor):
-    return torch.matmul(query, torch.transpose(key, -1, -2))
+  def compute_compatibility_score(
+      self, query: torch.Tensor, key: torch.Tensor,
+  ):
+    scores = torch.matmul(query, torch.transpose(key, -1, -2))
+    return scores
 
 attention = DotProductAttention()
 
 value = torch.rand(100, 20, 10)
 key = torch.rand(100, 20, 5)
 query = torch.rand(100, 10, 5)
-out = attention(value, key, query)
+out, attention_weights = attention(value, key, query)
 
-out.size() # torch.Size([100, 10, 10])
+# (torch.Size([100, 10, 10]), torch.Size([100, 10, 20]))
+out.size(), attention_weights.size()
 ```
 
 ```python
@@ -314,18 +335,22 @@ class ScaledDotProductAttention(AbstractAttention):
   def __init__(self):
     super().__init__()
 
-  def compute_compatibility_score(self, query: torch.Tensor, key: torch.Tensor):
+  def compute_compatibility_score(
+      self, query: torch.Tensor, key: torch.Tensor,
+    ):
     scaler = query.size()[-1] ** 0.5
-    return torch.matmul(query, torch.transpose(key, -1, -2)) / scaler
+    scores = torch.matmul(query, torch.transpose(key, -1, -2)) / scaler
+    return scores
 
 attention = ScaledDotProductAttention()
 
 value = torch.rand(100, 20, 10)
 key = torch.rand(100, 20, 5)
 query = torch.rand(100, 10, 5)
-out = attention(value, key, query)
+out, attention_weights = attention(value, key, query)
 
-out.size() # torch.Size([100, 10, 10])
+# (torch.Size([100, 10, 10]), torch.Size([100, 10, 20]))
+out.size(), attention_weights.size()
 ```
 
 ## Different Query, Key, Value Choices
@@ -361,11 +386,11 @@ Self-Attention has the following choices:
 
 ```python
 attention = ScaledDotProductAttention()
-
 value = torch.rand(100, 20, 10)
-out = attention(value, value, value)
+out, attention_weights = attention(value, value, value)
 
-out.size() # torch.Size([100, 20, 10])
+# (torch.Size([100, 20, 10]), torch.Size([100, 20, 20]))
+out.size(), attention_weights.size()
 ```
 
 ### Encoder-Decoder [Fig.4 - 3]
