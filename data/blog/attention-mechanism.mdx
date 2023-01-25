@@ -315,7 +315,8 @@ class ScaledDotProductAttention(AbstractAttention):
     super().__init__()
 
   def compute_compatibility_score(self, query: torch.Tensor, key: torch.Tensor):
-    return torch.matmul(query, torch.transpose(key, -1, -2)) / query.size()[-1]
+    scaler = query.size()[-1] ** 0.5
+    return torch.matmul(query, torch.transpose(key, -1, -2)) / scaler
 
 attention = ScaledDotProductAttention()
 
