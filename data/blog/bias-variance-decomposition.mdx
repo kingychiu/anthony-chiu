@@ -1,0 +1,57 @@
+---
+title: 'Bias Variance Decomposition'
+date: '2023-06-27'
+lastmod: '2023-06-27'
+tags:
+  [
+    'Bias Variance Decomposition',
+    'Bias Variance Tradeoff',
+    'Dataset Distribution',
+    'Overfitting',
+    'Underfitting',
+  ]
+draft: true
+layout: PostSimple
+summary: 'Bias Variance Decomposition'
+images: ['/static/images/attention/information-retrieval-fuzzy.png']
+authors: ['default']
+---
+
+This is my notes for the following resources:
+
+- CS4780 at Cornell University [^1]
+- mlxtend [^2]
+
+<TOCInline exclude="Overview" toc={props.toc} asDisclosure />
+
+## Concepts
+
+### Dataset & Dataset Distribution
+
+Consider a binary classification task that requires a dataset of $N$ examples.
+Let's denote the dataset as $D = \{(\bf{x}_i, y_i)\}_{i=1}^N$, where $\mathbf{x}_i \in \mathbb{R}^d$ and $y_i \in \mathbb{R}$ or $y_i \in \{0, 1\}$.
+
+In other words:
+
+- There are $N$ examples in the dataset.
+- The i-th example is a pair of a feature vector $\bf{x}_i$ and a label $y_i$.
+- A feature vector $\bf{x}_i$ is a $d$-dimensional vector.
+- A label $y_i$ is either 0 or 1.
+
+We can never get a dataset that covers the entire population. Instead, we can only get a dataset that is sampled from the population.
+Consider the dataset $D = \{(\bf{x}_i, y_i)\}_{i=1}^N$ was sampled from the population / probability distribution $P$. In other words,
+if we sample a dataset $D$ from $P$ again, we will get a different dataset $D'$.
+
+For example, taking datasets of 1000 images of cats and dogs from Google image search on different dates. The datasets will be different,
+and none of them can fully represent the population of all images of cats and dogs.
+
+### Expected Dataset
+
+### Expected Model
+
+### Bias Variance Decomposition
+
+## Implementation
+
+[^1]: [[Website] Lecture 12: Bias Variance Tradeoff @ CS4780](https://www.cs.cornell.edu/courses/cs4780/2018fa/lectures/lecturenote12.html)
+[^2]: [[Website] Bias Variance Decomposition @ mlxtend](https://rasbt.github.io/mlxtend/user_guide/evaluate/bias_variance_decomp/)
