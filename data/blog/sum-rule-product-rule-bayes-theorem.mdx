@@ -56,10 +56,10 @@ A `Composed Experiment` describes the repetitions of the same random experiment,
 
 ## Probability and Probability Distribution
 
-Let's consider a random variable $X$ with $M$ discrete outcomes $\Omega_{X}=\{x_1, x_2,..., x_i, ... x_M\}$.
+Let's consider a random variable $X$ with $M$ discrete outcomes $\Omega_{X}=\{x_1, x_2,..., x_m, ... x_M\}$.
 
-$P(X=x_i)$ denotes the `probability` of an event of $X$ being $x_i$. For example,
-if $X$ is the smartphone model we found in a random experiment, $P(X=\mathbf{IPhoneSE})$ is the probability of finding
+$P(X=x_m)$ denotes the `probability` of an event of $X$ being $x_m$. For example,
+if $X$ is the smartphone model we found in a random experiment, $P(X=\mathbf{}IPhoneSE)$ is the probability of finding
 an IPhoneSE smartphone in the random experiment.
 
 Taking all outcomes into account, $P(X)$ denotes the `probability distribution` of $X$:
@@ -71,16 +71,16 @@ Taking all outcomes into account, $P(X)$ denotes the `probability distribution` 
 
 Let's say there are two random variables $(X, Y)$ in a random experiment.
 
-- $X$ has M outcomes $\Omega_{X} =\{x_1, x_2, ..., x_i, ..., x_M\}$.
-- $Y$ has L outcomes $\Omega_{Y} =\{y_1, y_2, ..., y_j, ..., y_L\}$.
+- $X$ has M outcomes $\Omega_{X} =\{x_1, x_2, ..., x_m, ..., x_M\}$.
+- $Y$ has L outcomes $\Omega_{Y} =\{y_1, y_2, ..., y_l, ..., y_L\}$.
 
-Then each observation in the random experiment is a pair of events $(X=x_i, Y=y_j)$. $P(X=x_i, Y=y_j)$ denotes the `joint probability` of two events, $(X=x_i)$ and $(Y=y_j)$, occurring at the same time.
+Then each observation in the random experiment is a pair of events $(X=x_m, Y=y_l)$. $P(X=x_m, Y=y_l)$ denotes the `joint probability` of two events, $(X=x_m)$ and $(Y=y_l)$, occurring at the same time.
 
 For example, if $X$ and $Y$ are the smartphone model and the gender we
 found in an random experiment, respectively, $P(X=\mathbf{IPhoneSE}, Y=\mathbf{Male})$ indicates the probability of finding a male with IPhone SE in the random experiment.
 
-After obtaining the joint probability of each $(X=x_i, Y=y_j)$ pair, we can get the `joint probability distribution` $P(X, Y)$.
-To illustrate this idea, the following code generates 1000 $(X=x_i, Y=y_j)$ pairs (`xs` and `ys`):
+After obtaining the joint probability of each $(X=x_m, Y=y_l)$ pair, we can get the `joint probability distribution` $P(X, Y)$.
+To illustrate this idea, the following code generates 1000 $(X=x_m, Y=y_l)$ pairs (`xs` and `ys`):
 
 ```python
 # Take 1000 samples between [1, 5)
@@ -111,16 +111,16 @@ The above code generates the following dataframe:
 
 ## Marginal Probability
 
-Based on the observations of $(X=x_i, Y=y_j)$ we can calculate the `marginal probability` $P(X=x_i)$ by
+Based on the observations above of $(X=x_m, Y=y_l)$ we can calculate the `marginal probability` $P(X=x_m)$ by
 marginalizing $Y$:
 
 $$
-P(X=x_i) = \sum_{j} P(X=x_i, Y=y_j)
+P(X=x_m) = \sum_{j} P(X=x_m, Y=y_l)
 $$
 
 For example, if $X$ and $Y$ are the smartphone model and the gender we
 found in a random experiment, respectively. We can compute $P(X=\mathbf{IPhoneSE})$ by adding up the corresponding joint
-probabilites for each gender.
+probabilities for each gender.
 
 $$
 P(X=\mathbf{IPhoneSE}) = P(X=\mathbf{IPhoneSE}, Y=\mathbf{Male}) + P(X=\mathbf{IPhoneSE},
@@ -156,8 +156,8 @@ The above code generates the following dataframe:
 
 ## Conditional Probability
 
-If we filter the observations by a particular outcome (e.g., $X=x_i$), we can calculate the probabilities of
-observing $Y=y_j$ given the filtered observations $(X=x_i)$. It is called the `conditional probability` $P(Y=y_j|X=x_i)$
+If we filter the observations by a particular outcome (e.g., $X=x_m$), we can calculate the probabilities of
+observing $Y=y_l$ given the filtered observations $(X=x_m)$. It is called the `conditional probability` $P(Y=y_l|X=x_m)$
 
 The following code shows how to compute the `conditional probability distribution` $P(Y|X)$:
 
@@ -185,11 +185,11 @@ The above code generates the following dataframe:
   <div>Conditional Probability Distribution $P(Y|X)$</div>
 </div>
 
-From the result we can also observe that the conditional probability $P(Y=y_j|X=x_j)$ can be calculated with:
+From the result we can also observe that the conditional probability $P(Y=y_l|X=x_m)$ can be calculated with:
 
 $$
-P(Y=y_j|X=x_i) = \frac{P(X = x_i, Y = y_j)}
-{P(X = x_i)}
+P(Y=y_l|X=x_m) = \frac{P(X = x_m, Y = y_l)}
+{P(X = x_m)}
 $$
 
 And the conditional probability distribution can be written as:
@@ -203,10 +203,10 @@ And, $P(X,Y)=P(Y|X)P(X)$ is called the `product rule of probability theory`.
 
 ## Independence
 
-There is a special case for the `product rule` above. If two events $X=x_i$ and $Y=y_j$ are independent, Knowing $X=x_i$ in advance won't change the
-probability of having $Y=y_j$; therefore:
+There is a special case for the `product rule` above. If two events $X=x_m$ and $Y=y_l$ are independent, Knowing $X=x_m$ in advance won't change the
+probability of having $Y=y_l$; therefore:
 
-- The conditional probability becomes $P(Y=y_j|X=x_i) = P(Y=y_j)$
+- The conditional probability becomes $P(Y=y_l|X=x_m) = P(Y=y_l)$
 - The conditional probability distribution becomes $P(Y|X) = P(Y)$
 
 Applying this new information to the `product rule` above we will get:
@@ -215,7 +215,7 @@ $$
 P(X, Y) = P(X) \times P(Y)
 $$
 
-if $X=x_i$ and $Y=y_j$ are independent.
+if $X=x_m$ and $Y=y_l$ are independent.
 
 ## Test of Independence
 
@@ -226,18 +226,18 @@ xs = [np.random.randint(1, 5) for _ in range(1000)]
 ys = [np.random.randint(1, 3) for _ in range(1000)]
 ```
 
-In the Python coding example, we generated 1000 $(X=x_i, Y=y_j)$ pairs (`xs` and `ys`) uniformly and independently. But why we are not
+In the Python coding example, we generated 1000 $(X=x_m, Y=y_l)$ pairs (`xs` and `ys`) uniformly and independently. But why we are not
 getting a perfect result of $P(X, Y) = P(X) \times P(Y)$?
 
-Let's find out the reason by looking at the marginal probabilities $P(X)$ and $P(Y)$. Ideally we should see $P(X=x_i)=0.25$ and $P(Y=y_j)=0.5$ from the code output, but
+Let's find out the reason by looking at the marginal probabilities $P(X)$ and $P(Y)$. Ideally we should see $P(X=x_m)=0.25$ and $P(Y=y_l)=0.5$ from the code output, but
 it is not the case. Actually, if we increase the sample size, $P(X)$ and $P(Y)$ will get closer to the ideal values.
 
 So there is a problem with counting observations: the probabilities obtained from counting observations are not entirely accurate.
 
 We can also use the Chi-squared test to test if two categorical values are independent. Chi-squared test tests if two categorical variables are dependent on each other or not.
 
-- The null hypothesis: $(X=x_i)$ and $(Y=y_j)$ are independent.
-- The alternative hypothesis: $(X=x_i)$ and $(Y=y_j)$ are dependent.
+- The null hypothesis: $(X=x_m)$ and $(Y=y_l)$ are independent.
+- The alternative hypothesis: $(X=x_m)$ and $(Y=y_l)$ are dependent.
 
 ```python
 from sklearn.feature_selection import chi2
@@ -248,36 +248,36 @@ chi2(np.array(xs).reshape(-1, 1), np.array(ys).reshape(-1, 1))
 # > (array([0.88852322]), array([0.34587782]))
 ```
 
-The test returns a P-value of 0.346; therefore, we cannot reject the null hypothesis that $(X=x_i)$ and $(Y=y_j)$ are independent.
+The test returns a P-value of 0.346; therefore, we cannot reject the null hypothesis that $(X=x_m)$ and $(Y=y_l)$ are independent.
 
 ## Bayes' theorem
 
-Recall the `product rule` $P(X=x_i,Y=y_j)=P(Y=y_j|X=x_i)P(X=x_i)$, since joint probability distribution is symmetrical
-$P(X=x_i,Y=y_j) = P(Y=y_j,X=x_i)$, we can deduce the `Bayes' theorem` like this:
+Recall the `product rule` $P(X=x_m,Y=y_l)=P(Y=y_l|X=x_m)P(X=x_m)$, since joint probability distribution is symmetrical
+$P(X=x_m,Y=y_l) = P(Y=y_l,X=x_m)$, we can deduce the `Bayes' theorem` like this:
 
 $$
-P(Y=y_j|X=x_i)P(X=x_i) = P(X=x_i|Y=y_j)P(Y=y_j)
+P(Y=y_l|X=x_m)P(X=x_m) = P(X=x_m|Y=y_l)P(Y=y_l)
 $$
 
 $$
-P(Y=y_j|X=x_i) = \frac{P(X=x_i|Y=y_j)P(Y=y_j)}{P(X=x_i)}
+P(Y=y_l|X=x_m) = \frac{P(X=x_m|Y=y_l)P(Y=y_l)}{P(X=x_m)}
 $$
 
 Here,
 
-- $P(Y=y_j|X=x_i)$ describes the probability of finding our target $(Y=y_j)$ given the `Evidence` $(X=x_i)$. It is also called the `Posterior` Probability.
-- $P(Y=y_j)$ describes the probability of finding our target $(Y=y_j)$ before knowing the `Evidence` $(X=x_i)$. It is also called the `Prior` Probability.
+- $P(Y=y_l|X=x_m)$ describes the probability of finding our target $(Y=y_l)$ given the `Evidence` $(X=x_m)$. It is also called the `Posterior` Probability.
+- $P(Y=y_l)$ describes the probability of finding our target $(Y=y_l)$ before knowing the `Evidence` $(X=x_m)$. It is also called the `Prior` Probability.
 
-If the new `Evidence` $(X=x_i)$ is value-adding, we should see `Posterior` $P(Y=y_j|X=x_i)$ deviates from the `Prior` $P(Y=y_j)$. In other words,
-the new `Evidence` $(X=x_i)$ can update our degree of belief.
+If the new `Evidence` $(X=x_m)$ is value-adding, we should see `Posterior` $P(Y=y_l|X=x_m)$ deviates from the `Prior` $P(Y=y_l)$. In other words,
+the new `Evidence` $(X=x_m)$ can update our degree of belief.
 
 Also:
 
 $$
-P(X=x_i|Y=y_j)/P(X=x_i) > 1 \Rightarrow P(Y=y_j|X=x_i) > P(Y=y_j)
+P(X=x_m|Y=y_l)/P(X=x_m) > 1 \Rightarrow P(Y=y_l|X=x_m) > P(Y=y_l)
 $$
 
-This shows the `Evidence` $(X=x_i)$ is for $(Y=y_j)$. Therefore, $P(X=x_i|Y=y_j)/P(X=x_i)$ can be understood as the `Support` of the evidence for our target.
+This shows the `Evidence` $(X=x_m)$ is for $(Y=y_l)$. Therefore, $P(X=x_m|Y=y_l)/P(X=x_m)$ can be understood as the `Support` of the evidence for our target.
 
 ## Expectation and Variance
 
@@ -351,7 +351,7 @@ $$
 
 In `MLE`, the `Likelihood` $P(\bold{D}=\bold{d}|\bold{W}=\bold{w})$ is a function of $\bold{w}$ (varying $\bold{w}$) in this setting, it is not a probability distribution.
 To have a function of $\bold{w}$ that is a probability distribution given $\bold{D}=\bold{d}$, we need to use the Bayes' theorem to find the
-`Posterior` probability of the model parameter $\bold{w}$ is true.
+`Posterior` probability of the model parameter $\bold{w}$ is the one we want.
 
 $$
 P(\bold{W}=\bold{w}∣\bold{D}=\bold{d}) = \frac{P(\bold{D}=\bold{d}|\bold{W}=\bold{w})P(\bold{W}=\bold{w})}{P(\bold{D}=\bold{d})}
@@ -363,7 +363,9 @@ $$
 \bold{\hat{w}} = \argmax_{\bold{w}\in\bold{W}}{P(\bold{W}=\bold{w}|\bold{D}=\bold{d})} = \argmax_{\bold{w}\in\bold{W}}{P(\bold{D}=\bold{d}|\bold{W}=\bold{w})P(\bold{W}=\bold{w})}
 $$
 
-$P(\bold{W}=\bold{w})$ can be considered as the external knowledge of the parameter. `MAP` is like an external knowledge regularized `MLE`.
+The `Prior` $P(\bold{W}=\bold{w})$ can be considered as the external knowledge of the parameter. `MAP` is like an external knowledge regularized `MLE`.
 
 For example, the external knowledge can come from an human expert, then under the `MAP` setting, a bad model parameter ${\bold{w}_{bad}}$ can be avoided by providing a low $P(\bold{W}=\bold{w}_{bad})$.
 An example of bad parameters can be: A model that relies heavily on the gender information for predicting credit default.
+
+When `Prior` $P(\bold{W}=\bold{w})$ is a uniform distribution, `MAP` becomes `MLE`, because it doesn't matter what $\bold{w}$ is, the `Prior` probability is the same.
