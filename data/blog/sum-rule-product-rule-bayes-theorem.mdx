@@ -10,8 +10,6 @@ tags:
     'Joint Probability',
     'Marginal Probability',
     'Conditional Probability',
-    'Frequentist Probability',
-    'Bayesian Probability',
     'Test of Independence',
     'Bayes theorem',
     'Likelihood',
@@ -242,7 +240,7 @@ chi2(np.array(xs).reshape(-1, 1), np.array(ys).reshape(-1, 1))
 
 The test returns a P-value of 0.346; therefore, we cannot reject the null hypothesis that $(X=x_i)$ and $(Y=y_j)$ are independent.
 
-## Frequentist Probability and Bayesian Probability
+{/\* ## Frequentist Probability and Bayesian Probability
 
 The entire discussion above is based on counting observations. It is called the Frequentist Probability.
 The Frequentist Probability requires many repetitions of a random experiment to have an accurate probability distribution. In the code example, we only sampled 1000 $(X=x_i, Y=y_j)$ pairs (`xs` and `ys`), which is a small sample size.
@@ -260,7 +258,7 @@ counting observations or use the following theorical values:
 
 In general, prior probability (human knowledge) is better for a small dataset because Frequentist Probability requires a large dataset.
 However, one clear disadvantage of Bayesian Probability is that based on personal belief, it could be wrong that I assumed `xs` and `ys` come from
-two independent processes. A bad prior probability distribution setup is a problem for Bayesian Probability.
+two independent processes. A bad prior probability distribution setup is a problem for Bayesian Probability. \*/}
 
 ## Bayes' theorem
 
