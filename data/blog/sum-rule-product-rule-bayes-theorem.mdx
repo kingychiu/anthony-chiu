@@ -289,7 +289,7 @@ E_{x}[f] = \sum_{m=1}^{M}f(x_m)P(X=x_m)
 $$
 
 In most cases, we won't know the probability distribution $P(X)$, but we can approximate the `Expectation` by observations.
-Let's say we have a Dataset with $N$ observations $\{x_1, x_2, ..., x_n, ..., x_N\}$ that were drawn from
+Let's say we have a dataset with $N$ observations $\{x_1, x_2, ..., x_n, ..., x_N\}$ that were drawn from
 the probability distribution $P$ with replacement. The `Expectation` of $f$ can be approximated by $N$ observations:
 
 $$
@@ -306,12 +306,14 @@ $$
 
 $f(x)-E_{x}[f(x)]$ is the deviation of $f(x)$ from its `Expectation`. The `Variance` is the `Expectation` of the squared deviation.
 
-## Likelihood (in model's parameter estimation)
+## Likelihood in Machine Learning
 
-Let's say we have observed a dataset $\bold{d} = \{x_1,x_2...x_N\}$ from the dataset distribution $\bold{D}$. We want to estimate a model's parameter $\bold{w}=\{w_1,w_2...w_N\}$ from all possible parameters $\bold{W}$
-that is the best fit to the dataset $\bold{D}=\bold{d}$. The `Likelihood` $L(\bold{W}=\bold{w}|\bold{D}=\bold{d})$ is the measure of how likely one can observe this dataset $\bold{D}=\bold{d}$ given $\bold{W}=\bold{w}$.
+Let's we have a dataset with $N$ observations $\bold{d} = \{d_1,d_2...d_N\}$ from a distribution $P(\bold{D})$.
+We want to estimate a model with 2 parameters $\bold{w}=\{w_0,w_1\}$ from a distribution $P(\bold{W})$
 
-Equivalently $L(\bold{W}=\bold{w}|\bold{D}=\bold{d})=P(\bold{D}=\bold{d}|\bold{W}=\bold{w})$. In most cases, we have a varing $\bold{w}$ and a fixed $\bold{d}$,
+$L(\bold{W}=\bold{w}|\bold{D}=\bold{d}) = P(\bold{D}=\bold{d}|\bold{W}=\bold{w})$ is the `Likelihood` of having the parameter $\bold{w}$ given the dataset $\bold{d}$.
+
+In a training process, we have a varing $\bold{w}$ for a given fixed $\bold{d}$,
 therefore the `Likelihood` is a function of model parameter $\bold{w}$. For example, given a training dataset $\bold{d}$ and 2 models $\bold{w}_a$ and $\bold{w}_b$, $\bold{w}_a$ is better if
 $P(\bold{D}=\bold{d}|\bold{W}=\bold{w}_a) > P(\bold{D}=\bold{d}|\bold{W}=\bold{w}_b)$
 
@@ -320,29 +322,29 @@ $P(\bold{D}=\bold{d}|\bold{W}=\bold{w})$ is a probability distribution only if i
 
 ## Maximum Likelihood Estimation (MLE)
 
-There are $N$ samples $\{x_1,x_2...x_N\}$ in the dataset $\bold{D}=\bold{d}$:
+There are $N$ observations $\{d_1,d_2...d_N\}$ in the dataset $\bold{D}=\bold{d}$:
 
 $$
-P(\bold{D}=\bold{d}|\bold{W}=\bold{w}) = P(x_1,x_2...x_N|\bold{W}=\bold{w})
+P(\bold{D}=\bold{d}|\bold{W}=\bold{w}) = P(d_1,d_2...d_N|\bold{W}=\bold{w})
 $$
 
 Assume those samples are independent:
 
 $$
-P(\bold{D}=\bold{d}|\bold{W}=\bold{w}) = P(x_1|\bold{W}=\bold{w}) \times P(x_2|\bold{W}=\bold{w}) ... P(x_N|\bold{W}=\bold{w})
+P(\bold{D}=\bold{d}|\bold{W}=\bold{w}) = P(d_1|\bold{W}=\bold{w}) \times P(d_2|\bold{W}=\bold{w}) ... P(d_N|\bold{W}=\bold{w})
 = \prod_{i=1}^{N} P(x_i|\bold{W}=\bold{w})
 $$
 
 To find the best $\bold{W}=\bold{w}$, we going to maximize the `Likelihood`:
 
 $$
-\bold{\hat{w}} = \argmax_{\bold{w}\in\bold{W}}{P(\bold{D}=\bold{d}|\bold{W}=\bold{w})} = \argmax_{\bold{w}\in\bold{W}}{\prod_{i=1}^{N} P(x_i|\bold{W}=\bold{w})}
+\bold{\hat{w}} = \argmax_{\bold{w}\in\bold{W}}{P(\bold{D}=\bold{d}|\bold{W}=\bold{w})} = \argmax_{\bold{w}\in\bold{W}}{\prod_{i=1}^{N} P(d_i|\bold{W}=\bold{w})}
 $$
 
 The objective is also equivalent to maximize the `Log-likelihood`:
 
 $$
-\bold{\hat{w}} = \argmax_{\bold{w}\in\bold{W}}{P(\bold{D}=\bold{d}|\bold{W}=\bold{w})} = \argmax_{\bold{w}\in\bold{W}}\sum_{i=1}^{N}{\ln  P(x_i|\bold{W}=\bold{w})}
+\bold{\hat{w}} = \argmax_{\bold{w}\in\bold{W}}{P(\bold{D}=\bold{d}|\bold{W}=\bold{w})} = \argmax_{\bold{w}\in\bold{W}}\sum_{i=1}^{N}{\ln  P(d_i|\bold{W}=\bold{w})}
 $$
 
 ## Maximum a Posteriori Estimation (MAP)
