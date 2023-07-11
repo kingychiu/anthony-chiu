@@ -59,6 +59,9 @@ module.exports = withBundleAnalyzer({
     ignoreDuringBuilds: true,
     dirs: ['pages', 'components', 'lib', 'layouts', 'scripts'],
   },
+  images: {
+    domains: ['camo.githubusercontent.com', 'static.pepy.tech'],
+  },
   async headers() {
     return [
       {

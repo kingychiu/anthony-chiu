@@ -19,11 +19,11 @@ export default function ListLayout({ posts, title, initialDisplayPosts = [], pag
 
   return (
     <>
-      <div className="divide-y">
+      <div className="space-y-2 pt-4 pb-4">
         <ul>
           {!filteredBlogPosts.length && 'No posts found.'}
-
-          <div className="mx-auto mt-12 grid max-w-lg gap-5 lg:max-w-none lg:grid-cols-3">
+          <div className="font-bold">Articles</div>
+          <div className="mx-auto mt-2 grid gap-5">
             {displayPosts.map((frontMatter) => {
               const { slug, date, title, summary, tags, images } = frontMatter
               return (
@@ -31,10 +31,10 @@ export default function ListLayout({ posts, title, initialDisplayPosts = [], pag
                   href={`/blog/${slug}`}
                   key={slug}
                   className="
-                    hover: flex flex-col overflow-hidden rounded-lg border border-gray-800 transition
-                    duration-300 ease-in-out hover:scale-105 hover:shadow-2xl dark:border-white"
+                    hover: flex flex-col overflow-hidden rounded-lg  transition
+                    duration-300 ease-in-out hover:scale-105 hover:shadow-2xl md:w-[50%]"
                 >
-                  <div className="mt-6 flex-shrink-0 text-center">
+                  {/* <div className="mt-6 flex-shrink-0 text-center">
                     <Image
                       src={images[0]}
                       alt=""
@@ -42,7 +42,7 @@ export default function ListLayout({ posts, title, initialDisplayPosts = [], pag
                       height="200"
                       className="object-cover"
                     />
-                  </div>
+                  </div> */}
                   <div className="flex flex-1 flex-col justify-between bg-transparent p-6">
                     <div className="flex-1">
                       <div className="dark:text-grey-400 flex space-x-1 text-sm text-gray-500">
@@ -57,13 +57,6 @@ export default function ListLayout({ posts, title, initialDisplayPosts = [], pag
                         </p>
                       </div>
                     </div>
-                    {/* <div className="mt-6 flex items-center">
-                      <div className="flex flex-wrap ">
-                        {tags.map((tag) => (
-                          <Tag key={tag} text={tag} />
-                        ))}
-                      </div>
-                    </div> */}
                   </div>
                 </a>
               )
