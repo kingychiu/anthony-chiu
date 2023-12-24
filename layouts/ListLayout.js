@@ -36,7 +36,7 @@ export default function ListLayout({ posts, title, initialDisplayPosts = [], pag
                 >
                   {/* <div className="mt-6 flex-shrink-0 text-center">
                     <Image
-                      src={images[0]}
+                ./build      src={images[0]}
                       alt=""
                       width="300"
                       height="200"
