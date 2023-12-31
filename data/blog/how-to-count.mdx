@@ -1,0 +1,94 @@
+---
+title: 'How to Count...'
+date: '2023-12-31'
+lastmod: '2023-12-31'
+tags: ['Counting', 'Permutations', 'Combinations']
+draft: false
+layout: PostSimple
+summary: 'Counting, Permutations and Combinations'
+images: []
+authors: ['default']
+---
+
+## Readings
+
+- [Combinatorics - Brilliant](https://brilliant.org/wiki/combinatorics)
+- [Rule of Sum - Brilliant](https://brilliant.org/wiki/rule-of-sum)
+- [Rule of Product - Brilliant](https://brilliant.org/wiki/rule-of-product)
+
+## Counting Integers in Ranges
+
+$[a, b]$: the number of integers is $b - a + 1$.
+
+- $[1, 10]$: From 1 to 10 inclusive, there are 10 integers.
+- $[0, 10]$: From 0 to 10 inclusive, there are 11 integers.
+- $[20, 79]$: From 20 to 79 inclusive, there are 60 integers.
+
+$[a, b)$: the number of integers is $b - a$.
+
+- $[0, 10)$: From 0 to 10 exclusive, there are 10 integers.
+- $[20, 79)$: From 20 to 79 exclusive, there are 59 integers.
+
+**Need to write it down to remember it and avoid the off-by-one error.**
+
+## Rule of Sum
+
+If there are $n$ ways to do something and $m$ ways to do another, then there are $n + m$ ways to do **either** one thing or the other.
+
+- If I can only buy a shirt or a pair of pants, and there are 3 ways to choose a shirt and 2 ways to choose a pair of pants, then there are $3 + 2 = 5$ ways to choose either a shirt or a pair of pants.
+
+### Intermediate Examples
+
+**Example 1**
+
+How many outcomes of throwing 6 indistinguishable coins? (Assume HHHHHT and THHHHH are the same)
+
+Method 1: List all possible outcomes.
+
+- There can be 0 heads, 1 head, 2 heads, 3 heads, 4 heads, 5 heads or 6 heads.
+- There are 7 outcomes in total.
+
+Method 2: Let's Head be 1 and Tail be 0.
+
+- The largest sum of 6 coins is 6 (HHHHHH).
+- The smallest sum of 6 coins is 0 (TTTTTT).
+- There are 7 possible integers between 0 and 6 inclusive.
+
+**Example 2**
+
+How many unique sums from throwing 6 dice?
+
+- The largest sum of 6 dice is 36 (666666).
+- The smallest sum of 6 dice is 6 (111111).
+- There are 31 possible integers between 6 and 36 inclusive.
+
+## Rule of Product
+
+If there are $n$ ways to do something and $m$ ways to do another, then there are $n \times m$ ways to do **both** things.
+
+- If there are 3 ways to choose a shirt and 2 ways to choose a pair of pants, then there are $3 \times 2 = 6$ ways to choose a shirt and a pair of pants.
+- If there are 3 colors, 2 sizes and 5 variants, then there are $3 \times 2 \times 5 = 30$ ways to choose a shirt.
+
+### Intermediate Examples
+
+**Example 1**
+
+We can take either buses or trains to travel between two cities.
+There are 2 trains and 3 buses between city A and B and 4 trains and 5 buses between city B and C.
+How many ways are there to travel from city A to C?
+
+- There are $2 + 3 = 5$ ways from A to B. (Sum: We only take **either** 1 train or 1 bus from A to B)
+- There are $4 + 5 = 9$ ways from B to C. (Sum: We only take **either** 1 train or 1 bus from B to C)
+- There are $5 \times 9 = 45$ ways from A to C. (Product: We need to travel between **both** A to B and B to C)
+
+**Example 2**
+
+How many ways to place 6 people in 3 seats?
+
+- First seat: 6 ways to choose a person. (Sum: We only take **either** 1 person from 6 people)
+- Second seat: 5 ways to choose a person. (Sum: We only take **either** 1 person from 5 people)
+- Third seat: 4 ways to choose a person. (Sum: We only take **either** 1 person from 4 people)
+- Total: $6 \times 5 \times 4 = 120$ ways. (Product: We need to fill **all** 3 seats)
+- This also is the permutation of taking 3 people from 6 people: $P_3^6 = 6 \times 5 \times 4 = 120$.
+
+## Permutations
