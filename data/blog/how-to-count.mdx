@@ -17,6 +17,7 @@ authors: ['default']
 - [Rule of Product - Brilliant](https://brilliant.org/wiki/rule-of-product)
 - [Permutations - Brilliant](https://brilliant.org/wiki/permutations)
 - [Combinations - Brilliant](https://brilliant.org/wiki/combinations)
+- [Ball-and-urn - Art of Problem Solving](https://artofproblemsolving.com/wiki/index.php/Ball-and-urn)
 
 ## Counting Integers in Ranges
 
@@ -209,6 +210,29 @@ Here, we want to choose k objects from n objects, ignoring the order.
 
 **Example 1**
 
+How many ways are there to select 3 males and 2 females out of 7 males and 5 females?
+
+- Choosing 3 males from 7 males and choosing 2 females from 5 females: $C_3^7 \times C_2^5 = 350$.
+
+**Example 2**
+
+How many ways to form 3 groups of 2, 3 and 4 people from 9 people?
+
+- Select 2 people from 9 people: $C_2^9 = 36$.
+- And, Select 3 people from remaining 7 people: $C_3^7 = 35$.
+- And, Select 4 people from remaining 4 people: $C_4^4 = 1$.
+- Total there are $36 \times 35 \times 1 = 1260$ ways.
+
+**Example 3**
+
+At a party, everyone shakes hands with everyone else. If there are 66 handshakes in total, how many people are there?
+
+- Each person shakes hands with everyone else except himself/herself.
+- Solving the number of 2-combinations from n people = 66
+- $n = 12$
+
+**Example 4**
+
 How can you arrange 3 chocolates and 10 candies in a line?
 
 Method 1: Permutation with repetition
@@ -222,4 +246,36 @@ Method 2: Combinations
 - We need to choose 3 positions from 13 positions to be the chocolate position.
 - The total number of combinations is $C_3^{13} = \frac{13!}{3! \times (13 - 3)!} = 286$.
 
-TODO
+**Example 5**
+
+Out of 7 consonants and 4 vowels, how many words of 3 consonants and 2 vowels can be formed?
+
+- Ignoring the order, let's select 3 consonants from 7 consonants and 2 vowels from 4 vowels.
+- There are $C_3^7 \times C_2^4 = 210$ groups of unique 3-consonants and 2-vowels.
+- Now we have 5 letters for each group, there are $5!$ permutations for each group.
+- The total number of permutations is $210 \times 5! = 25200$.
+
+## Ball-and-Urn Model
+
+How many ways can $k$ indistinguishable balls be distributed into $n$ distinguishable urns?
+
+- We can translate the problem into: How do we set up $n-1$ indistinguishable dividers between $k$ indistinguishable balls?
+- The order of the balls and dividers defines the distribution among distinct urns.
+- There are $k$ balls and $n-1$ dividers. There are $k + n - 1$ objects.
+- To arrange these objects, there are $\frac{(k + n - 1)!}{k! \times (n - 1)!}$ ways.
+- Which equals to $C_{n - 1}^{k + n - 1}$.
+
+**Example 1**
+
+How many ways do you distribute 7 cookies to 4 people, so each person gets at least 1 cookie?
+
+Method 1: Ball-and-urn model
+
+- If we distribute 1 cookie to each person, we have 3 cookies left.
+- k=3, n=4, there are $C_{4-1}^{3+4-1} = C_3^6 = 20$ ways.
+
+Method 2: Translate to a dividing problem
+
+- If we distribute 1 cookie to each person, we have 3 cookies left.
+- We need to set up 3 dividers between 3 cookies, there are 6 objects in total.
+- By permutations with repetition: There are $6! / (3! \times 3!) = 20$ ways.
