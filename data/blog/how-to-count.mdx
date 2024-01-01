@@ -16,6 +16,7 @@ authors: ['default']
 - [Rule of Sum - Brilliant](https://brilliant.org/wiki/rule-of-sum)
 - [Rule of Product - Brilliant](https://brilliant.org/wiki/rule-of-product)
 - [Permutations - Brilliant](https://brilliant.org/wiki/permutations)
+- [Combinations - Brilliant](https://brilliant.org/wiki/combinations)
 
 ## Counting Integers in Ranges
 
@@ -148,4 +149,77 @@ How many 4-letter passwords can be formed from 26 uppercase letters, 26 lowercas
 
 - The total number of permutations is $P_4^{62} = \frac{62!}{(62 - 4)!} = \frac{62!}{58!} = 13388280$.
 
-... TODO
+**Example 3**
+
+If there are 25 stations on a train line, how many types of tickets (between any stations) can be sold?
+
+- We are choosing 2 stations from 25 stations for each ticket type.
+- The total number of permutations is $P_2^{25} = \frac{25!}{(25 - 2)!} = \frac{25!}{23!} = 600$.
+
+### Permutations of Objects with Repetition (Partially indistinguishable)
+
+Given $n$ objects, where $n_1$ are of one type, $n_2$ are of another type, ..., $n_k$ are of another type,
+the number of permutations is $\frac{n!}{n_1! \times n_2! \times ... \times n_k!}$.
+
+- When each type of object only has 1 object (All are distinct), the number of permutations is $n!$.
+- When all objects are of the same type (All are indistinguishable), the number of permutations is $1$.
+
+**Example 1**
+
+If there are 2 indistinguishable cats, 3 indistinguishable dogs, 1 rabbit, 1 penguin,
+and 1 koala, how many ways to arrange them in a line?
+
+- The total number of permutations is $\frac{8!}{2! \times 3!} = 3360$.
+
+**Example 2**
+
+How many ways can the letter RAMONA be arranged?
+
+- There are 6 letters in total, but 2 A's.
+- The total number of permutations is $\frac{6!}{2!} = 360$.
+
+**Example 3**
+
+How many ways to arrange 2 deck of indistinguishable cards?
+
+- There are totally $52 \times 2 = 104$ cards.
+- Each unique card has 2 copies.
+- There are in total $\frac{104!}{2! \times 2! \times ... \times 2!} = \frac{104!}{2^{52}}$ ways.
+
+**Example 4**
+
+How many ways to arrange BANANA such that no two N's are adjacent?
+
+- There are 6 letters in total, but 3 A's and 2 N's. The total number of permutations without the restriction
+  is $\frac{6!}{3! \times 2!} = 60$.
+- Let's consider NN is a single letter. We have 5 letters in total, but 3 A's. The total number of
+  permutations given we have NN is $\frac{5!}{3!} = 20$.
+- There are in total $60 - 20 = 40$ ways.
+
+Remark: It is not easy to compute the number of permutations of a subset of objects with repetition:
+https://math.stackexchange.com/questions/2372/how-to-find-the-number-of-k-permutations-of-n-objects-with-x-types-and-r
+
+## Combinations
+
+Here, we want to choose k objects from n objects, ignoring the order.
+
+- The number of permutations of selecting k objects from n objects is $P_k^n = \frac{n!}{(n - k)!}$.
+- Each group of selected k objects gives $P_k^k = k!$ permutations.
+- Therefore, the number of combinations is $C_k^n = \frac{P_k^n}{k!} = \frac{n!}{k! \times (n - k)!}$.
+
+**Example 1**
+
+How can you arrange 3 chocolates and 10 candies in a line?
+
+Method 1: Permutation with repetition
+
+- There are 13 objects in total, but 3 are of one type and 10 are of another type.
+- The total number of permutations is $\frac{13!}{3! \times 10!} = 286$.
+
+Method 2: Combinations
+
+- Let's consider the problem as choosing 3 indices from \{1, 2, ..., 13\} to be the chocolate positions.
+- We need to choose 3 positions from 13 positions to be the chocolate position.
+- The total number of combinations is $C_3^{13} = \frac{13!}{3! \times (13 - 3)!} = 286$.
+
+TODO
