@@ -15,6 +15,7 @@ authors: ['default']
 - [Combinatorics - Brilliant](https://brilliant.org/wiki/combinatorics)
 - [Rule of Sum - Brilliant](https://brilliant.org/wiki/rule-of-sum)
 - [Rule of Product - Brilliant](https://brilliant.org/wiki/rule-of-product)
+- [Permutations - Brilliant](https://brilliant.org/wiki/permutations)
 
 ## Counting Integers in Ranges
 
@@ -92,3 +93,59 @@ How many ways to place 6 people in 3 seats?
 - This also is the permutation of taking 3 people from 6 people: $P_3^6 = 6 \times 5 \times 4 = 120$.
 
 ## Permutations
+
+A Permutation is an arrangement of objects in a specific order. The number of permutations of $n$ objects is $n!$.
+
+- There are n positions to fill and n objects to choose.
+- The first position can be filled with the $(n)$ objects.
+- The second position can be filled with the remaining $(n - 1)$ objects.
+- ...
+- The last position can be filled with the remaining $1$ object.
+- Total there are $n!$ ways: $n \times (n - 1) \times (n - 2) \times ... \times 1$
+
+**Example 1**
+
+How many ways to place 4 men and 4 women at a circular table so that no two women are adjacent?
+
+- No two women are adjacent -> men can only be placed between two women.
+- There are 3 gaps between 4 women -> there are $3!$ ways to place 4 men.
+- There number of permutations of placing 4 women is $4!$.
+- Total there are $3! \times 4! = 144$ ways.
+
+**Example 2**
+
+How many 5-digit numbers can be formed from ${0, 2, 4, 6, 8}$?
+
+- The total number of permutations is $5! = 120$.
+- However, $4!$ permutations start with 0.
+- Total there are $5! - 4! = 96$ ways.
+
+### Perumutations of a Subset of Distinct Objects
+
+The number of permutations of $k$ objects chosen from $n$ distinct objects is $P_k^n = \frac{n!}{(n - k)!}$.
+
+**Example 1**
+
+How many 3-digit numbers can be formed from 10 digits ranging from [0, 9]?
+
+Method 1:
+
+- The total number of permutations is $P_3^{10} = \frac{10!}{(10 - 3)!} = \frac{10!}{7!} = 720$.
+- But there are $P_2^{9} = \frac{9!}{(9 - 2)!} = \frac{9!}{7!} = 72$ permutations starting with 0.
+  (The first digit is fixed to 0, and the remaining 2 digits can be chosen from 9 digits.)
+- There are $720 - 72 = 648$ ways.
+
+Method 2:
+
+- The first digit can be chosen from 9 digits (1 to 9).
+- The second digit can be chosen from 9 digits [0, 9], excluding the first digit.
+- The third digit can be chosen from 8 digits [0, 9], excluding the first and second digits.
+- Total there are $9 \times 9 \times 8 = 648$ ways.
+
+**Example 2**
+
+How many 4-letter passwords can be formed from 26 uppercase letters, 26 lowercase letters, and 10 digits?
+
+- The total number of permutations is $P_4^{62} = \frac{62!}{(62 - 4)!} = \frac{62!}{58!} = 13388280$.
+
+... TODO
