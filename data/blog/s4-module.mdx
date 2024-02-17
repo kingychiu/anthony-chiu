@@ -13,12 +13,17 @@ authors: ['default']
 The notes I wrote here are mostly based on the readings below.
 Under development...
 
+<TOCInline toc={props.toc} asDisclosure />
+
 ## Readings
 
+- [Efficiently Modeling Long Sequences with Structured State Spaces](https://arxiv.org/pdf/2111.00396.pdf)
 - [The Annotated S4](https://srush.github.io/annotated-s4/)
 - [State Space Models](https://en.wikipedia.org/wiki/State-space_representation)
 
-## State Space Models
+## State Space
+
+### State Space Models
 
 <div className="text-center">
   <Image
@@ -32,7 +37,11 @@ Under development...
 
 In control engineering, a state-space representation is a mathematical model of a physical system as a set of input, output, and state variables related by first-order differential equations or difference equations.
 
-At time $t$ (continuous/discrete), we have the following vectors:
+$$ \mathbf{x}'(t) = A \mathbf{x}(t) + B \mathbf{u}(t) $$
+
+$$ \mathbf{y}(t) = C \mathbf{x}(t) + D \mathbf{u}(t) $$
+
+At time $t$, we have the following:
 
 - $u(t) \in \mathbb{R}^p$ is the input vector
 - $y(t) \in \mathbb{R}^q$ is the output vector
@@ -40,10 +49,10 @@ At time $t$ (continuous/discrete), we have the following vectors:
 - Matrices $A, B, C, D$ don't depend on time. These represent the system's **time-independent** parameters.
 - $x'(t) \in \mathbb{R}^n$ is defined as the derivative of the state vector $x(t)$. It captures the change in the state vector over time.
 
-(My Guessing (?)) The state space model enforces/guides the hidden states towards differential relationships between the input and output vectors. This is one reason
-why state space models might be better than transformers for long time series data.
+[Idea/Doubt?] The state-space representation models the differential relationships explicitly unlike other models like transformer.
+This could be a reason why it's better for signal data.
 
-**Example**
+#### Physical Example
 
 Considering a classical ["Moving object example"](https://en.wikipedia.org/wiki/State-space_representation#Moving_object_example), an object moving horizontally on a plane and attached to a wall with a spring.
 
@@ -67,3 +76,17 @@ The **time-dependent** internal states are
 - $\mathbf{x}_2(t) = \mathbf{x}'_1(t)$ the velocity of the object
 - $\mathbf{x}'_2(t) = \mathbf{x}''_1(t)$ the acceleration of the object
 - $\mathbf{x}_1(t) = y(t)$ The position of the object.
+
+#### Dropping the D matrix
+
+The D matrix presents the direct feedthrough from the input to the output. It's often zero.
+Even if it is not zero, this can be replaced by standard skip connections in the neural network.
+
+$$ \mathbf{x}'(t) = A \mathbf{x}(t) + B \mathbf{u}(t) $$
+
+$$ \mathbf{y}(t) = C \mathbf{x}(t) $$
+
+### Addressing Long-Range Dependencies with HiPPO
+
+The basic State Space Model performs very poorly in practice, because it may suffer from the vanishing gradient problem.
+...
