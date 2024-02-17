@@ -1,0 +1,69 @@
+---
+title: 'Notes on S4 (Efficiently Modeling Long Sequences with Structured State Spaces)'
+date: '2024-02-17'
+lastmod: '2024-02-17'
+tags: ['S4', 'Long Sequences with Structured State Spaces']
+draft: false
+layout: PostSimple
+summary: 'Notes on S4 (Efficiently Modeling Long Sequences with Structured State Spaces)'
+images: []
+authors: ['default']
+---
+
+The notes I wrote here are mostly based on the readings below.
+Under development...
+
+## Readings
+
+- [The Annotated S4](https://srush.github.io/annotated-s4/)
+- [State Space Models](https://en.wikipedia.org/wiki/State-space_representation)
+
+## State Space Models
+
+<div className="text-center">
+  <Image
+    alt="Block diagram representation of the linear state-space equations"
+    src="/static/images/s4-module/state-space-blocks-wiki.png"
+    width="944"
+    height="354"
+  />
+  <div>Block diagram representation of the linear state-space equations</div>
+</div>
+
+In control engineering, a state-space representation is a mathematical model of a physical system as a set of input, output, and state variables related by first-order differential equations or difference equations.
+
+At time $t$ (continuous/discrete), we have the following vectors:
+
+- $u(t) \in \mathbb{R}^p$ is the input vector
+- $y(t) \in \mathbb{R}^q$ is the output vector
+- $x(t) \in \mathbb{R}^n$ is the state vector. This represents the system's **time-dependent internal state**.
+- Matrices $A, B, C, D$ don't depend on time. These represent the system's **time-independent** parameters.
+- $x'(t) \in \mathbb{R}^n$ is defined as the derivative of the state vector $x(t)$. It captures the change in the state vector over time.
+
+(My Guessing (?)) The state space model enforces/guides the hidden states towards differential relationships between the input and output vectors. This is one reason
+why state space models might be better than transformers for long time series data.
+
+**Example**
+
+Considering a classical ["Moving object example"](https://en.wikipedia.org/wiki/State-space_representation#Moving_object_example), an object moving horizontally on a plane and attached to a wall with a spring.
+
+We want to model the object's position given a force.
+
+- The applied force over time is the input vector $u(t)$.
+- The object's position over time is the output vector $y(t)$.
+
+The **time-independent** parameters are
+
+- $b$ the viscous fiction coefficient
+- $k$ the spring constant
+- $m$ the mass of the object.
+
+$$ A = \begin{bmatrix} 0 & 1 \\ -k/m & -b/m \end{bmatrix} $$
+$$ B = \begin{bmatrix} 0 \\ 1/m \end{bmatrix} $$
+$$ C = \begin{bmatrix} 1 & 0 \end{bmatrix} $$
+
+The **time-dependent** internal states are
+
+- $\mathbf{x}_2(t) = \mathbf{x}'_1(t)$ the velocity of the object
+- $\mathbf{x}'_2(t) = \mathbf{x}''_1(t)$ the acceleration of the object
+- $\mathbf{x}_1(t) = y(t)$ The position of the object.
