@@ -10,20 +10,25 @@ images: []
 authors: ['default']
 ---
 
-The notes I wrote here are mostly based on the readings below.
-Under development...
+## Abstract
+
+The note here is about the paper "Efficiently Modeling Long Sequences with Structured State Spaces" (S4).
+The paper also depends on the authors' previous works "Combining Recurrent, Convolutional, and Continuous-time Models with Linear State-Space Layers" and "HiPPO: Recurrent Memory with Optimal Polynomial Projections".
 
 <TOCInline toc={props.toc} asDisclosure />
 
 ## Readings
 
-- [Efficiently Modeling Long Sequences with Structured State Spaces](https://arxiv.org/pdf/2111.00396.pdf)
-- [The Annotated S4](https://srush.github.io/annotated-s4/)
-- [State Space Models](https://en.wikipedia.org/wiki/State-space_representation)
+The notes I wrote here are mostly based on the readings below.
+Under development...
 
-## State Space
+- [\[Paper\] Efficiently Modeling Long Sequences with Structured State Spaces](https://arxiv.org/pdf/2111.00396.pdf)
+- [\[Paper\] Combining Recurrent, Convolutional, and Continuous-time Models with Linear State-Space Layers](https://arxiv.org/pdf/2110.13985.pdf)
+- [\[Paper\] HiPPO: Recurrent Memory with Optimal Polynomial Projections](https://arxiv.org/pdf/2008.07669.pdf)
+- [\[Blog\] The Annotated S4](https://srush.github.io/annotated-s4/)
+- [\[Wiki\] State Space Models](https://en.wikipedia.org/wiki/State-space_representation)
 
-### State Space Models
+## State Space Models
 
 <div className="text-center">
   <Image
@@ -52,7 +57,7 @@ At time $t$, we have the following:
 [Idea/Doubt?] The state-space representation models the differential relationships explicitly unlike other models like transformer.
 This could be a reason why it's better for signal data.
 
-#### Physical Example
+### Physical Example
 
 Considering a classical ["Moving object example"](https://en.wikipedia.org/wiki/State-space_representation#Moving_object_example), an object moving horizontally on a plane and attached to a wall with a spring.
 
@@ -77,7 +82,7 @@ The **time-dependent** internal states are
 - $\mathbf{x}'_2(t) = \mathbf{x}''_1(t)$ the acceleration of the object
 - $\mathbf{x}_1(t) = y(t)$ The position of the object.
 
-#### Dropping the D matrix
+### Dropping the D matrix
 
 The D matrix presents the direct feedthrough from the input to the output. It's often zero.
 Even if it is not zero, this can be replaced by standard skip connections in the neural network.
@@ -86,7 +91,7 @@ $$ \mathbf{x}'(t) = A \mathbf{x}(t) + B \mathbf{u}(t) $$
 
 $$ \mathbf{y}(t) = C \mathbf{x}(t) $$
 
-### Addressing Long-Range Dependencies with HiPPO
+## Addressing Long-Range Dependencies with HiPPO
 
 The basic State Space Model performs very poorly in practice, because it may suffer from the vanishing gradient problem.
 ...
