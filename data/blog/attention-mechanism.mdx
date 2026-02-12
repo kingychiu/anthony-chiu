@@ -6,7 +6,6 @@ tags:
   [
     'Attention Mechanism',
     'Query, Key, Value and Output',
-    'Bahdanau Attention',
     'Dot-Product Attention',
     'Scaled Dot-Product Attention',
     'Self-Attention',
@@ -33,7 +32,7 @@ also shows how to achieve different Attention Mechanisms by varying:
 For example, the innovation of Self-Attention is to use the same vector as `Query`, `Key`, and `Value`, while the
 innovation of Scaled Dot-Product Attention is to have a different Query-Key compatibility function.
 
-<TOCInline exclude="Abstract" toc={props.toc} asDisclosure />
+{/* <TOCInline exclude="Abstract" toc={props.toc} asDisclosure /> */}
 
 ## Information Retrieval System
 
@@ -93,13 +92,13 @@ For example, in Fig.2,
 
 ### Information Retrieval in Sequential Data
 
-We have discussed the Query-Key compatibility in terms of an Information Retrieval System, but how can we apply it into
-Deep Learning? We can use different `Querys`, `Keys`, and `Values` choices for various NLP tasks. Let's
+We have discussed the Query-Key compatibility in terms of an Information Retrieval System, but how can we apply it to
+Deep Learning? We can use different `Queries`, `Keys`, and `Values` choices for various NLP tasks. Let's
 consider a simple task below:
 
 For a 5-word sentence: **"i like to eat apple"**, we want to know if the word **"apple"** is a fruit or a company.
 
-Let's have the following `Querys`, `Keys`, and `Values` choices:
+Let's have the following `Queries`, `Keys`, and `Values` choices:
 
 - `Keys` = `Values` as five embedding vectors of each word = $\mathbf{k}_{1 \le s \le 5}$
 - `Query` as the embedding vector of the word **"apple"** = $\mathbf{q}$
@@ -114,7 +113,7 @@ Ideally, we want the `Key` **"eat"** to have a higher score than the other `Keys
 when `Query` is **"apple"**, for example $(\mathbf{q}, \mathbf{k}_4)$ should be
 more compatible than $(\mathbf{q}, \mathbf{k}_3)$.
 
-Let's make up some scores such that only the `Keys` **"eat"** and **"apple"** have a high score with the `Query` **"apple"**.:
+Let's make up some scores such that only the `Keys` **"eat"** and **"apple"** have a high score with the `Query` **"apple"**:
 
 $$
 [0.0, 0.0, 0.0, 0.4, 0.6]
@@ -123,7 +122,7 @@ $$
 Then the `Output` for the `Query` **"apple"** will be the weighted sum of all `Values`:
 
 $$
-\mathbf{o}=0.4 \times \mathbf{k}\_4 + 0.6 \times \mathbf{k}\_5
+\mathbf{o}=0.4 \times \mathbf{k}_4 + 0.6 \times \mathbf{k}_5
 $$
 
 ## The General Form of Attention Mechanism
@@ -150,7 +149,7 @@ $$
 ### Query-key Compatibility Function
 
 A Query-Key compatibility function $f_{\mathbf{compatibility}}: (\R^{d_q}, \R^{d_k}) \to \R$
-maps a `Query` vector and a `Key` vector to a score scaler. The higher the score, the more compatible the `Query` vector and `Key` vector are.
+maps a `Query` vector and a `Key` vector to a score scalar. The higher the score, the more compatible the `Query` vector and `Key` vector are.
 We will have $S$ compatibility scores:
 
 $$
@@ -163,13 +162,13 @@ The attention weights are usually defined by applying softmax to the compatibili
 Here is how we compute these $S$ attention weights:
 
 $$
-\forall 1 \le s \le S: a_s \in \R = \frac{\exp(e_s)}{\sum_{s=1}^S \exp(e_s)}
+\forall 1 \le s \le S: a_s \in \R = \frac{\exp(e_s)}{\sum_{j=1}^S \exp(e_j)}
 $$
 
 Then the `Output` vector $\mathbf{o} \in \R^{d_v}$ is the weighted sum of those $S$ `Value` vectors:
 
 $$
-\mathbf{o} \in \R^{d_v} = \sum_s^S a_s \mathbf{v}_s
+\mathbf{o} \in \R^{d_v} = \sum_{s=1}^{S} a_s \mathbf{v}_s
 $$
 
 ### Pytorch Implementation of an Abstract Attention Module
@@ -203,7 +202,7 @@ class AbstractAttention(torch.nn.Module):
     Return:
       torch.Tensor: The score tensor with the last two dimensions = (, S_decode, S_encode)
     """
-    raise NotImplemented
+    raise NotImplementedError
 
   def forward(
       self,
@@ -239,7 +238,7 @@ class AbstractAttention(torch.nn.Module):
     # 2. There can be negative values in the scores matrix, therefore 0 is not
     #   a good choice for the fill value.
     if attention_mask is not None:
-      scores = scores.masked_fill(attention_mask == 0, torch.Float('-inf'))
+      compatibility_scores = compatibility_scores.masked_fill(attention_mask == 0, float('-inf'))
 
     # Compute softmax over the second last dimension
     attention_weights = torch.nn.functional.softmax(
@@ -260,10 +259,16 @@ class AbstractAttention(torch.nn.Module):
 ### Dot-Product Attention
 
 Regarding the angular similarity between two vectors, Dot-Product is a common choice. Dot-Product Attention refers to having the compatibility function as
-the dot-product of the `Query` vector and `Key` vector. [^3]
+the dot-product of the `Query` vector and `Key` vector. [^2]
 
 $$
 f_{\mathbf{compatibility}}(\mathbf{q}, \mathbf{k}) \in \R = \mathbf{q}^T \mathbf{k}
+$$
+
+In matrix form, given $\mathbf{Q} \in \R^{T \times d_k}$ and $\mathbf{K} \in \R^{S \times d_k}$, $\mathbf{V} \in \R^{S \times d_v}$:
+
+$$
+\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}(\mathbf{Q} \mathbf{K}^T) \mathbf{V}
 $$
 
 Dot-Product Attention is the simplest compatibility measure form, as there are no hidden learning weights in the compatibility function.
@@ -271,14 +276,19 @@ However, this method assumes both `Query` and `Key` vectors have the same dimens
 
 ### Scaled Dot-Product Attention
 
-Scaled Dot-Product Attention is a variant of Dot-Product Attention, where we scale the dot-product by a factor $\frac{1}{\sqrt{d_k}}$. [^4]
+Scaled Dot-Product Attention is a variant of Dot-Product Attention, where we scale the dot-product by a factor $\frac{1}{\sqrt{d_k}}$. [^3]
 
 $$
 f_{\mathbf{compatibility}}(\mathbf{q}, \mathbf{k}) \in \R = \frac{\mathbf{q}^T \mathbf{k}}{\sqrt{d_k}}
 $$
 
-Note: The original Transformer paper [^4] shows the matrix form of the scaled dot-product attention.
-The formula above is the vector form that takes two vectors instead of matrices.
+In matrix form, given $\mathbf{Q} \in \R^{T \times d_k}$ and $\mathbf{K} \in \R^{S \times d_k}$, $\mathbf{V} \in \R^{S \times d_v}$:
+
+$$
+\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\frac{\mathbf{Q} \mathbf{K}^T}{\sqrt{d_k}}\right) \mathbf{V}
+$$
+
+This is the form shown in the original Transformer paper [^3].
 
 ### Query, Key, and Value Linear Transformation
 
@@ -293,7 +303,7 @@ The formula above is the vector form that takes two vectors instead of matrices.
   <div>Fig.3 Linear Transformation Before Dot-Product in Transformer</div>
 </div>
 
-If the original `Query`, `Key`, `Valye` vectors are not the same size.
+If the original `Query`, `Key`, `Value` vectors are not the same size.
 We can apply linear transformations to the vectors before applying a compatibility function.
 This projects the input vectors into the same dimension. Fig.3 shows the linear transformations
 before the scaled dot-product in the standard Transformer model.
@@ -354,7 +364,7 @@ out.size(), attention_weights.size()
 
 Other than varying the Query-Key compatibility function, we can also change the `Query`, `Key`, and `Value` choices.
 We can combine different compatibility functions and `Query`, `Key`, and `Value` choices
-to construct other attention mechanisms. [^5]
+to construct other attention mechanisms. [^4]
 
 For example, in Transformer, we have Self-Attention with Scaled Dot-Product Compatibility Function.
 
@@ -417,17 +427,7 @@ out, attention_weights = attention(value, value, value, attention_mask=prev_toke
 attention_weights
 ```
 
-### Encoder-Decoder [Fig.4 - 3]
-
-When we want to use a source sequence to predict a target sequence, it is common to see an Encoder-Decoder pattern.
-In Fig.3 we can see the connection between the Encoder and the Decoder is an Attention layer. That attention layer has the
-following choices:
-
-- `Keys` = `Values` are embedding vectors of each word in the encoded source sequence.
-- `Query` is an embedding vector of a word in the target Sequence
-
 [^1]: [[Paper] Attention Is All You Need](https://arxiv.org/abs/1706.03762)
-[^2]: [[Website] Paper with code - Additive Attention](https://paperswithcode.com/method/additive-attention)
-[^3]: [[Website] Paper with code - Dot-Product Attention](https://paperswithcode.com/method/dot-product-attention)
-[^4]: [[Website] Paper with code - Scaled Dot-Product Attention](https://paperswithcode.com/method/scaled)
-[^5]: [[Website] Attention? Attention! | Lil'Log](https://lilianweng.github.io/posts/2018-06-24-attention/)
+[^2]: [[Website] Paper with code - Dot-Product Attention](https://paperswithcode.com/method/dot-product-attention)
+[^3]: [[Website] Paper with code - Scaled Dot-Product Attention](https://paperswithcode.com/method/scaled)
+[^4]: [[Website] Attention? Attention! | Lil'Log](https://lilianweng.github.io/posts/2018-06-24-attention/)
