@@ -174,7 +174,7 @@ $$
 Then the `Output` vector $\mathbf{o} \in \R^{d_v}$ is the weighted sum of those $S$ `Value` vectors:
 
 $$
-\mathbf{o} \in \R^{d_v} = \sum_{s=1}^{S} a_s \mathbf{v}_s = \sum_{s=1}^{S} \frac{\exp(e_s)}{\sum_{j=1}^S \exp(e_j)} \mathbf{v}_s = \sum_{s=1}^{S} \frac{\exp(f_{\mathbf{compatibility}}(\mathbf{q}, \mathbf{k}_s))}{\sum_{j=1}^S \exp(f_{\mathbf{compatibility}}(\mathbf{q}, \mathbf{k}_j))} \mathbf{v}_s
+\mathbf{o} \in \R^{d_v} = \sum_{s=1}^{S} a_s \mathbf{v}_s = \sum_{s=1}^{S} \frac{\exp(e_s)}{\sum_{j=1}^S \exp(e_j)} \mathbf{v}_s
 $$
 
 In matrix form, given $\mathbf{Q} \in \R^{T \times d_q}$, $\mathbf{K} \in \R^{S \times d_k}$, $\mathbf{V} \in \R^{S \times d_v}$, and a compatibility score matrix $\mathbf{E} \in \R^{T \times S}$:
@@ -232,10 +232,26 @@ This is the form shown in the original Transformer paper [^3].
   <div>Fig.3 Linear Transformation Before Dot-Product in Transformer</div>
 </div>
 
-If the original `Query`, `Key`, `Value` vectors are not the same size.
-We can apply linear transformations to the vectors before applying a compatibility function.
-This projects the input vectors into the same dimension. Fig.3 shows the linear transformations
-before the scaled dot-product in the standard Transformer model.
+Note: In Fig.3 and the original Transformer paper, the labels "Q", "K", "V" at the bottom refer to the **input** to the linear layers (before projection).
+The actual `Query`, `Key`, `Value` vectors used in the attention computation are the **outputs** of these linear layers (after projection).
+
+In practice, the input to an attention layer is a matrix $\mathbf{X} \in \R^{S \times d_{\text{model}}}$.
+The model projects $\mathbf{X}$ into `Query`, `Key`, and `Value` matrices using three learnable weight matrices:
+
+$$
+\mathbf{Q} = \mathbf{X} \mathbf{W}_Q, \quad \mathbf{K} = \mathbf{X} \mathbf{W}_K, \quad \mathbf{V} = \mathbf{X} \mathbf{W}_V
+$$
+
+where $\mathbf{W}_Q \in \R^{d_{\text{model}} \times d_k}$, $\mathbf{W}_K \in \R^{d_{\text{model}} \times d_k}$, and $\mathbf{W}_V \in \R^{d_{\text{model}} \times d_v}$.
+
+These projection matrices $\mathbf{W}_Q$, $\mathbf{W}_K$, $\mathbf{W}_V$ are the **only learnable parameters** in the attention mechanism.
+The compatibility function itself (e.g., dot-product) has no learnable weights — all learning happens through these projections.
+
+Substituting into the Scaled Dot-Product Attention formula, we get the full equation:
+
+$$
+\text{Attention}(\mathbf{X}) = \text{softmax}\left(\frac{(\mathbf{X} \mathbf{W}_Q)(\mathbf{X} \mathbf{W}_K)^T}{\sqrt{d_k}}\right) (\mathbf{X} \mathbf{W}_V)
+$$
 
 ## Different Query, Key, Value Choices
 
