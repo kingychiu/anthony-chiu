@@ -159,100 +159,29 @@ $$
 ### Attention Weights and the Output Vectors
 
 The attention weights are usually defined by applying softmax to the compatibility scores, such that the sum of the weights is 1.
+The softmax function is defined as:
+
+$$
+\text{softmax}(x_i) = \frac{\exp(x_i)}{\sum_{j=1}^N \exp(x_j)}
+$$
+
 Here is how we compute these $S$ attention weights:
 
 $$
-\forall 1 \le s \le S: a_s \in \R = \frac{\exp(e_s)}{\sum_{j=1}^S \exp(e_j)}
+\forall 1 \le s \le S: a_s \in \R = \text{softmax}(e_s) = \frac{\exp(e_s)}{\sum_{j=1}^S \exp(e_j)}
 $$
 
 Then the `Output` vector $\mathbf{o} \in \R^{d_v}$ is the weighted sum of those $S$ `Value` vectors:
 
 $$
-\mathbf{o} \in \R^{d_v} = \sum_{s=1}^{S} a_s \mathbf{v}_s
+\mathbf{o} \in \R^{d_v} = \sum_{s=1}^{S} a_s \mathbf{v}_s = \sum_{s=1}^{S} \frac{\exp(e_s)}{\sum_{j=1}^S \exp(e_j)} \mathbf{v}_s = \sum_{s=1}^{S} \frac{\exp(f_{\mathbf{compatibility}}(\mathbf{q}, \mathbf{k}_s))}{\sum_{j=1}^S \exp(f_{\mathbf{compatibility}}(\mathbf{q}, \mathbf{k}_j))} \mathbf{v}_s
 $$
 
-### Pytorch Implementation of an Abstract Attention Module
+In matrix form, given $\mathbf{Q} \in \R^{T \times d_q}$, $\mathbf{K} \in \R^{S \times d_k}$, $\mathbf{V} \in \R^{S \times d_v}$, and a compatibility score matrix $\mathbf{E} \in \R^{T \times S}$:
 
-Here we implement an abstract attention module in Pytorch. The `compute_compatibility_score` method is the
-compatibility function $f_{\mathbf{compatibility}}$. The whole implementation is based on the matrix form of the attention mechanism.
-We assume the second-last of the tensors is the sequence length, and the last is the embedding dimension.
-
-```python
-import torch
-import typing
-
-class AbstractAttention(torch.nn.Module):
-  """
-  We assume the second-last of the tensors is the sequence length,
-  and the last is the embedding dimension.
-  """
-
-  def __init__(self):
-    super().__init__()
-
-  def compute_compatibility_score(
-      self,
-      query: torch.Tensor,
-      key: torch.Tensor,
-  ):
-    """
-    Args:
-      key (torch.Tensor): The Key tensor.
-      query (torch.Tensor): The Query.
-    Return:
-      torch.Tensor: The score tensor with the last two dimensions = (, S_decode, S_encode)
-    """
-    raise NotImplementedError
-
-  def forward(
-      self,
-      value: torch.Tensor,
-      key: torch.Tensor,
-      query: torch.Tensor,
-      attention_mask: typing.Optional[torch.Tensor] = None,
-    ):
-    """
-    Args:
-      value (torch.Tensor): The Value tensor. Last two dimensions = (, S_encode, D_v)
-      key (torch.Tensor): The Key tensor. Last two dimensions = (, S_encode, D_k)
-      query (torch.Tensor): The Query.  Last two dimensions = (, S_decode, D_q)
-      attention_mask: typing.Optional[torch.Tensor]: It is a binary mask being
-        passed into the compute_compatibility_score function to post-process
-        the calculated scores. (S_decode, S_encode)
-    Return:
-      torch.Tensor: The Output tensor. Last two dimensions = (, S_decode, D_v)
-    """
-
-    # The attentions are among the second last dimension.
-    encode_seq_len = value.size()[-2]
-    decode_seq_len = query.size()[-2]
-    assert value.size()[-2] == key.size()[-2]
-
-    # Compute the compatibility scores. The scoring is based on the last
-    # dimension.
-    compatibility_scores = self.compute_compatibility_score(query, key)
-    assert compatibility_scores.size()[-2:] == (decode_seq_len, encode_seq_len)
-
-    # We are setting unwanted score to -inf, it is because
-    # 1. This gives an 0 attention weight after applying Softmax
-    # 2. There can be negative values in the scores matrix, therefore 0 is not
-    #   a good choice for the fill value.
-    if attention_mask is not None:
-      compatibility_scores = compatibility_scores.masked_fill(attention_mask == 0, float('-inf'))
-
-    # Compute softmax over the second last dimension
-    attention_weights = torch.nn.functional.softmax(
-        compatibility_scores, dim=-1
-    )
-    assert attention_weights.size()[-2:] == (decode_seq_len, encode_seq_len)
-
-    # Compute matrix multiplication over the last two dimensions
-    output = torch.matmul(attention_weights, value)
-    assert output.size()[-2] == decode_seq_len
-    assert output.size()[-1] == value.size()[-1]
-
-    return output, attention_weights
-```
+$$
+\mathbf{O} \in \R^{T \times d_v} = \text{softmax}(\mathbf{E}) \mathbf{V}
+$$
 
 ## Different Query-Key Compatibility Functions
 
@@ -308,58 +237,6 @@ We can apply linear transformations to the vectors before applying a compatibili
 This projects the input vectors into the same dimension. Fig.3 shows the linear transformations
 before the scaled dot-product in the standard Transformer model.
 
-### Pytorch Implementation of Different Compatibility Functions
-
-Here we implement different compatibility functions in Pytorch. The whole implementation is based on the matrix form of the attention mechanism.
-We assume the second-last of the tensors is the sequence length, and the last is the embedding dimension.
-
-```python
-# Matrix Form Pytorch Implementation of Dot-Product Attention
-class DotProductAttention(AbstractAttention):
-  def __init__(self):
-    super().__init__()
-
-  def compute_compatibility_score(
-      self, query: torch.Tensor, key: torch.Tensor,
-  ):
-    scores = torch.matmul(query, torch.transpose(key, -1, -2))
-    return scores
-
-attention = DotProductAttention()
-
-value = torch.rand(100, 20, 10)
-key = torch.rand(100, 20, 5)
-query = torch.rand(100, 10, 5)
-out, attention_weights = attention(value, key, query)
-
-# (torch.Size([100, 10, 10]), torch.Size([100, 10, 20]))
-out.size(), attention_weights.size()
-```
-
-```python
-# Matrix Form Pytorch Implementation of Scaled Dot-Product Attention
-class ScaledDotProductAttention(AbstractAttention):
-  def __init__(self):
-    super().__init__()
-
-  def compute_compatibility_score(
-      self, query: torch.Tensor, key: torch.Tensor,
-    ):
-    scaler = query.size()[-1] ** 0.5
-    scores = torch.matmul(query, torch.transpose(key, -1, -2)) / scaler
-    return scores
-
-attention = ScaledDotProductAttention()
-
-value = torch.rand(100, 20, 10)
-key = torch.rand(100, 20, 5)
-query = torch.rand(100, 10, 5)
-out, attention_weights = attention(value, key, query)
-
-# (torch.Size([100, 10, 10]), torch.Size([100, 10, 20]))
-out.size(), attention_weights.size()
-```
-
 ## Different Query, Key, Value Choices
 
 Other than varying the Query-Key compatibility function, we can also change the `Query`, `Key`, and `Value` choices.
@@ -391,41 +268,8 @@ Self-Attention has the following choices:
 - `Keys` = `Values` are embedding vectors of each word in a sequence = $\mathbf{k}_{1 \le s \le S}$
 - `Query` is an embedding vector of a word in the same sequence = $\mathbf{q}_{1 \le s \le S}$
 
-```python
-attention = ScaledDotProductAttention()
-
-seq_len = 3
-emb_dim = 5
-value = torch.rand(2, seq_len, emb_dim)
-out, attention_weights = attention(value, value, value)
-
-# (torch.Size([2, 3, 5]), torch.Size([2, 3, 3]))
-out.size(), attention_weights.size()
-```
-
-The masked self-attention is a variant of self-attention where we mask the attention weights of the future words:
-
-```python
-attention = ScaledDotProductAttention()
-
-seq_len = 3
-emb_dim = 5
-
-# Construct a attention mask (, S_decode, S_encode)
-prev_token_mask = torch.zeros((seq_len, seq_len))
-for decode_idx in range(seq_len):
-  # Only enable the encode indices that are less than or equal to the
-  # decode idx
-  prev_token_mask[decode_idx][0: decode_idx + 1] = 1
-
-value = torch.rand(1, seq_len, emb_dim)
-out, attention_weights = attention(value, value, value, attention_mask=prev_token_mask)
-
-# tensor([[[1.0000, 0.0000, 0.0000],
-#          [0.4597, 0.5403, 0.0000],
-#          [0.3136, 0.3519, 0.3345]]])
-attention_weights
-```
+The masked self-attention is a variant of self-attention where we mask the attention weights of the future words.
+This is used in the Transformer decoder to prevent positions from attending to subsequent positions.
 
 [^1]: [[Paper] Attention Is All You Need](https://arxiv.org/abs/1706.03762)
 [^2]: [[Website] Paper with code - Dot-Product Attention](https://paperswithcode.com/method/dot-product-attention)
