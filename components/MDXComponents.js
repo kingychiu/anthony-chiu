@@ -6,6 +6,10 @@ import CustomLink from './Link'
 import TOCInline from './TOCInline'
 import Pre from './Pre'
 import { BlogNewsletterForm } from './NewsletterForm'
+import ExactMatchRetrieval from './attention/ExactMatchRetrieval'
+import FuzzyMatchRetrieval from './attention/FuzzyMatchRetrieval'
+import ScalingVisualizer from './attention/ScalingVisualizer'
+import SelfAttentionVisualizer from './attention/SelfAttentionVisualizer'
 
 export const MDXComponents = {
   Image,
@@ -13,6 +17,10 @@ export const MDXComponents = {
   a: CustomLink,
   pre: Pre,
   BlogNewsletterForm: BlogNewsletterForm,
+  ExactMatchRetrieval,
+  FuzzyMatchRetrieval,
+  ScalingVisualizer,
+  SelfAttentionVisualizer,
   wrapper: ({ components, layout, ...rest }) => {
     const Layout = require(`../layouts/${layout}`).default
     return <Layout {...rest} />

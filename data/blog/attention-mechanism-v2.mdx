@@ -1,0 +1,701 @@
+---
+title: 'The Attention Mechanism'
+date: '2026-09-04'
+lastmod: '2026-09-04'
+tags:
+  [
+    'Attention Mechanism',
+    'Query, Key, Value and Output',
+    'Dot-Product Attention',
+    'Scaled Dot-Product Attention',
+    'Self-Attention',
+    'Cross-Attention',
+    'Multi-Head Attention',
+    'Multi-Query Attention',
+    'Grouped-Query Attention',
+    'Flash Attention',
+    'Transformer',
+  ]
+draft: true
+layout: PostWithSidebar
+summary: 'A comprehensive look at the attention mechanism — from the intuition behind Query, Key, and Value to modern variants like Multi-Query Attention and Flash Attention. Covers the core computation, why scaling matters, what linear projections learn, the difference between self-attention and cross-attention, multi-head attention, and the design choices that make attention work at scale.'
+images: ['/static/images/attention/information-retrieval-fuzzy.png']
+authors: ['default']
+---
+
+## Preface
+
+The attention mechanism is a flexible and powerful framework, but that flexibility can make it confusing.
+The same words — Query, Key, Value — get reused across many different configurations,
+and it is not always clear what is a fixed part of the mechanism and what is a design choice.
+
+This article is a comprehensive look at attention.
+It starts from the intuition behind Query, Key, and Value using an analogy with information retrieval,
+builds up the full mathematical formulation, explains the design choices in the original Transformer,
+and covers the modern variants that have emerged as models scale to longer sequences and larger deployments.
+
+Each chapter is self-contained enough to revisit on its own.
+
+{/* TOC is rendered as a sidebar by the PostWithSidebar layout */}
+
+---
+
+## Attention as Information Retrieval
+
+The easiest way to understand attention is through an analogy: an information retrieval system.
+
+An information retrieval system stores **Values** indexed by **Keys**.
+A user submits a **Query**, and the system returns an **Output** — either the Value associated with
+a matching Key, or some combination of Values based on how well each Key matches the Query.
+
+This analogy maps directly onto the attention mechanism. The only difference is _how_ matching works.
+
+### Exact Matching
+
+Consider a simple system that stores personal income records.
+The Keys are people's names. The Values are their incomes.
+A user enters a Query (a name), and the system returns the Output (the income of the matched person).
+
+<div className="my-6">
+  <ExactMatchRetrieval />
+  <div className="mt-2 text-center text-sm text-gray-500">
+    Fig. 1 — Finding the exact income by a person's name. Click a name to query.
+  </div>
+</div>
+
+In Fig. 1, when the Query is "Anthony", the system finds the Key "Anthony" (an exact match),
+and returns the associated Value: $1000. This is a hard lookup — the Query either matches a Key
+or it does not. There is no ambiguity, and only one Value contributes to the Output.
+
+This is useful, but it is also rigid. What happens when the Query does not exactly match any Key?
+
+### Fuzzy Matching and Compatibility Scores
+
+Instead of requiring an exact match, we can compute a **compatibility score** between the Query
+and every Key in the system. The compatibility score measures how well the Query and Key "go together" —
+how relevant that Key is to the Query. Different functions can measure compatibility: string similarity,
+semantic distance, dot product, or any other function that takes a Query and a Key and returns a number.
+
+<div className="my-6">
+  <FuzzyMatchRetrieval />
+  <div className="mt-2 text-center text-sm text-gray-500">
+    Fig. 2 — Estimating a person's income by a partial name. Type to see scores change.
+  </div>
+</div>
+
+In Fig. 2, the Query "An" does not exactly match any Key.
+Instead, the system computes a compatibility score between "An" and each Key (Anthony, Tom, Tony).
+"Anthony" scores highest because it starts with "An". "Tony" scores next because it contains "on".
+"Tom" scores lowest.
+
+### The Output as a Weighted Sum
+
+Once we have compatibility scores, the Output is the **weighted sum** of all Values,
+weighted by those scores.
+
+For example, if the scores are $[0.9, 0.1, 0.0]$ respectively:
+
+$$
+\text{Output} = 1000 \times 0.9 + 2000 \times 0.1 + 3000 \times 0.0 = 1100
+$$
+
+If the scores are $[1.0, 0.0, 0.0]$, the Output is exactly $1000$ — equivalent to exact matching.
+The harder the distribution, the more the Output looks like a single Value retrieval.
+The softer the distribution, the more Values contribute to the blend.
+
+This is the core idea behind attention: **the Output is always a blend of Values,
+weighted by how compatible each Key is with the Query.**
+
+### From Retrieval to Sequences
+
+How does this apply to deep learning? Consider a 5-word sentence:
+
+> **"i like to eat apple"**
+
+We want to compute a contextual representation of the word "apple" —
+one that captures whether "apple" refers to a fruit or a company.
+The word "apple" alone is ambiguous. The surrounding context resolves the ambiguity.
+
+We can frame this as an information retrieval problem:
+
+- **Keys** = embedding vectors of each word in the sentence: $\mathbf{k}_1$ ("i"), $\mathbf{k}_2$ ("like"), $\mathbf{k}_3$ ("to"), $\mathbf{k}_4$ ("eat"), $\mathbf{k}_5$ ("apple")
+- **Values** = the same embedding vectors (we will revisit this choice in Chapter 5)
+- **Query** = the embedding vector of "apple": $\mathbf{q} = \mathbf{k}_5$
+
+The system computes compatibility scores between the Query ("apple") and each Key.
+Ideally, "eat" should have a high compatibility score with "apple" — the word "eat" is the strongest
+signal that "apple" is a fruit. The words "i", "like", and "to" carry less disambiguating information.
+
+Suppose the learned compatibility scores, after normalization, are:
+
+$$
+[0.05, \, 0.05, \, 0.05, \, 0.50, \, 0.35]
+$$
+
+Then the output representation for "apple" is:
+
+$$
+\mathbf{o} = 0.05 \, \mathbf{k}_1 + 0.05 \, \mathbf{k}_2 + 0.05 \, \mathbf{k}_3 + 0.50 \, \mathbf{k}_4 + 0.35 \, \mathbf{k}_5
+$$
+
+The output is dominated by the embedding of "eat" (50% weight), with a secondary contribution from
+"apple" itself (35%). This blended representation encodes the contextual meaning:
+"apple" in the context of eating — a fruit.
+
+If the sentence were "i like to buy apple", the scores would shift — "buy" is more ambiguous between
+fruit and company, so the attention distribution would be flatter, reflecting that uncertainty.
+
+---
+
+## The Core Computation
+
+Now let us formalize what we described in Chapter 1.
+
+### Query, Key, Value, and Output Vectors
+
+In the deep learning setting, we work with vectors in continuous spaces:
+
+- A **Query** vector $\mathbf{q} \in \mathbb{R}^{d_q}$ — what we are looking for
+- A set of $S$ **Key** vectors $\mathbf{k}_s \in \mathbb{R}^{d_k}$ — what is available to match against
+- A set of $S$ **Value** vectors $\mathbf{v}_s \in \mathbb{R}^{d_v}$ — the information to retrieve
+
+The Output vector $\mathbf{o} \in \mathbb{R}^{d_v}$ lives in the same space as the Values,
+because it is a weighted sum of Values.
+
+We can stack the Keys and Values into matrices:
+
+$$
+\mathbf{K} \in \mathbb{R}^{S \times d_k} = \begin{bmatrix} \mathbf{k}_1^T \\ \mathbf{k}_2^T \\ \vdots \\ \mathbf{k}_S^T \end{bmatrix}, \quad
+\mathbf{V} \in \mathbb{R}^{S \times d_v} = \begin{bmatrix} \mathbf{v}_1^T \\ \mathbf{v}_2^T \\ \vdots \\ \mathbf{v}_S^T \end{bmatrix}
+$$
+
+### The Three Steps
+
+Attention always proceeds in three steps:
+
+**Step 1 — Score.** Compute a raw compatibility score between the Query and every Key
+using a compatibility function $f$:
+
+$$
+\forall 1 \le s \le S: \quad e_s = f(\mathbf{q}, \mathbf{k}_s)
+$$
+
+The choice of $f$ is a design decision. We will explore different choices in Chapter 3.
+
+**Step 2 — Normalize.** Apply softmax to convert raw scores into attention weights that sum to 1:
+
+$$
+a_s = \text{softmax}(e_s) = \frac{\exp(e_s)}{\sum_{j=1}^{S} \exp(e_j)}
+$$
+
+Softmax serves two purposes. First, it normalizes the weights so they sum to 1,
+meaning the Output lives in the convex hull of the Value vectors.
+Second, unlike a hard argmax, softmax is differentiable — gradients flow through the
+attention weights during backpropagation, which is essential for training.
+
+**Step 3 — Aggregate.** Compute the Output as the weighted sum of Value vectors:
+
+$$
+\mathbf{o} = \sum_{s=1}^{S} a_s \, \mathbf{v}_s
+$$
+
+### Matrix Form
+
+When we have $T$ Query vectors (not just one), we can write the entire computation as a matrix operation.
+Given $\mathbf{Q} \in \mathbb{R}^{T \times d_q}$, $\mathbf{K} \in \mathbb{R}^{S \times d_k}$, $\mathbf{V} \in \mathbb{R}^{S \times d_v}$,
+and a score matrix $\mathbf{E} \in \mathbb{R}^{T \times S}$:
+
+$$
+\mathbf{O} = \text{softmax}(\mathbf{E}) \, \mathbf{V} \in \mathbb{R}^{T \times d_v}
+$$
+
+where softmax is applied row-wise (each Query independently normalizes its scores across all Keys).
+
+Each row of $\mathbf{O}$ is the attention output for one Query — a weighted blend of all Values.
+
+---
+
+## The Compatibility Function and Why Scaling Matters
+
+The compatibility function $f(\mathbf{q}, \mathbf{k})$ is the heart of attention. It determines how the model
+measures relevance between Queries and Keys. Different choices lead to different variants of attention.
+
+### Dot-Product Attention
+
+The simplest compatibility function is the dot product:
+
+$$
+f(\mathbf{q}, \mathbf{k}) = \mathbf{q}^T \mathbf{k}
+$$
+
+The dot product measures the angular similarity between two vectors.
+It is computationally efficient (a single matrix multiplication computes all $T \times S$ scores at once)
+and has **no learnable parameters** — the compatibility function itself does not add any weights to the model.
+
+In matrix form:
+
+$$
+\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}(\mathbf{Q} \mathbf{K}^T) \, \mathbf{V}
+$$
+
+This requires $d_q = d_k$ (the Query and Key must have the same dimension for the dot product to be defined).
+
+Dot-product attention works well at low dimensions. But it has a problem that becomes serious
+as the dimension $d_k$ grows.
+
+### The Scaling Problem
+
+Assume the elements of $\mathbf{q}$ and $\mathbf{k}$ are independent random variables with zero mean and unit variance.
+The dot product $\mathbf{q}^T \mathbf{k} = \sum_{i=1}^{d_k} q_i k_i$ is a sum of $d_k$ independent terms,
+each with zero mean and unit variance. By the properties of variance:
+
+$$
+\text{Var}(\mathbf{q}^T \mathbf{k}) = d_k
+$$
+
+As $d_k$ increases, the dot products grow in magnitude. Some scores become very large positive,
+others very large negative. When softmax receives inputs with large magnitudes, it **saturates**:
+nearly all probability mass concentrates on the single largest score.
+
+In this saturated regime:
+
+- The attention output is effectively a hard lookup — only one Value contributes.
+- Gradients with respect to the non-maximum scores are near zero.
+- The model cannot learn to adjust its attention distribution, because the gradients it needs are vanishingly small.
+
+This is not a theoretical concern — it is a training failure mode that occurs in practice
+for standard model dimensions ($d_k$ = 64 or 128).
+
+### Scaled Dot-Product Attention
+
+The fix is straightforward: divide the dot products by $\sqrt{d_k}$ to bring the variance back to 1:
+
+$$
+f(\mathbf{q}, \mathbf{k}) = \frac{\mathbf{q}^T \mathbf{k}}{\sqrt{d_k}}
+$$
+
+In matrix form:
+
+$$
+\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\!\left(\frac{\mathbf{Q} \mathbf{K}^T}{\sqrt{d_k}}\right) \mathbf{V}
+$$
+
+This is the form used in the original Transformer.[^1] The scaling factor is not a heuristic —
+it is a variance-normalizing transform that ensures the softmax inputs have approximately
+unit variance regardless of dimension.
+
+### See the Effect
+
+Use the controls below to experiment with dimension and scaling.
+At high dimensions without scaling, notice how one attention weight dominates (the distribution is nearly one-hot).
+Toggle scaling to see the distribution smooth out:
+
+<div className="my-6">
+  <ScalingVisualizer />
+  <div className="mt-2 text-center text-sm text-gray-500">
+    Fig. 3 — How dot-product magnitude and scaling affect the attention distribution.
+  </div>
+</div>
+
+### Other Compatibility Functions
+
+Dot product is not the only option. Historically, several alternatives have been used:
+
+**Additive (Bahdanau) attention**[^2] uses a learned two-layer network:
+
+$$
+f(\mathbf{q}, \mathbf{k}) = \mathbf{w}^T \tanh(\mathbf{W}_1 \mathbf{q} + \mathbf{W}_2 \mathbf{k})
+$$
+
+This has learnable parameters ($\mathbf{W}_1$, $\mathbf{W}_2$, $\mathbf{w}$) in the compatibility function itself,
+and does not require $d_q = d_k$. It was the original attention mechanism, predating the Transformer.
+
+**General attention** uses a learned bilinear form:
+
+$$
+f(\mathbf{q}, \mathbf{k}) = \mathbf{q}^T \mathbf{W} \mathbf{k}
+$$
+
+In practice, scaled dot-product attention dominates modern architectures because it is fast
+(parallelizable as matrix multiplication) and the absence of learnable parameters in the
+compatibility function is not a limitation — the learning happens in the projections (Chapter 4).
+
+---
+
+## Learning to Attend — Linear Projections
+
+The scaled dot-product compatibility function has zero learnable parameters.
+If the entire attention mechanism had no learnable parameters, it would be a fixed function —
+useful as a hand-crafted module, but unable to learn _what_ to attend to from data.
+
+All learning in the attention mechanism happens through three projection matrices.
+
+### The Projection Matrices
+
+Given an input $\mathbf{X} \in \mathbb{R}^{S \times d_{\text{model}}}$ (a sequence of $S$ token representations,
+each of dimension $d_{\text{model}}$), the model computes Query, Key, and Value matrices
+through learned linear projections:
+
+$$
+\mathbf{Q} = \mathbf{X} \mathbf{W}_Q, \quad \mathbf{K} = \mathbf{X} \mathbf{W}_K, \quad \mathbf{V} = \mathbf{X} \mathbf{W}_V
+$$
+
+where $\mathbf{W}_Q \in \mathbb{R}^{d_{\text{model}} \times d_k}$, $\mathbf{W}_K \in \mathbb{R}^{d_{\text{model}} \times d_k}$, $\mathbf{W}_V \in \mathbb{R}^{d_{\text{model}} \times d_v}$.
+
+These three matrices — $\mathbf{W}_Q$, $\mathbf{W}_K$, $\mathbf{W}_V$ — are the **only learnable parameters** in a single attention head.
+
+### What Each Projection Learns
+
+The input $\mathbf{X}$ is a single, general-purpose representation for each token.
+The three projections create three _different views_ of the same input, each specialized for its role:
+
+- $\mathbf{W}_Q$ learns: **"what am I looking for?"** — it projects a token into a space where
+  its representation encodes what kind of information this token needs from other tokens.
+
+- $\mathbf{W}_K$ learns: **"what do I advertise?"** — it projects a token into a space where
+  its representation encodes what this token offers to others who might be looking for it.
+
+- $\mathbf{W}_V$ learns: **"what information do I carry?"** — it projects a token into a space where
+  its representation encodes the actual content to be retrieved when this token is attended to.
+
+These three roles are independent. A verb's Query projection might encode "I need my subject"
+(a syntactic need), while the same verb's Key projection might encode "I am an action verb"
+(a semantic advertisement). The same token looks different depending on whether you ask
+"what does it need?" versus "what does it provide?"
+
+### The Diagram Labeling Confusion
+
+In diagrams of the Transformer — including the original paper — the inputs at the bottom of the
+attention module are labeled "Q", "K", "V". This is misleading.
+
+These labels refer to the **source** of the input, not the actual Query, Key, and Value vectors.
+In self-attention, all three inputs are the _same tensor_ $\mathbf{X}$.
+The actual Q, K, V vectors are the **outputs** of the linear projection layers.
+
+The labels "Q", "K", "V" at the bottom say: "this input will be projected to become the Query",
+"this input will be projected to become the Key", and "this input will be projected to become the Value".
+In self-attention, those three boxes all receive the same $\mathbf{X}$.
+
+### The Full Equation
+
+Substituting the projections into the scaled dot-product attention formula:
+
+$$
+\text{Attention}(\mathbf{X}) = \text{softmax}\!\left(\frac{(\mathbf{X} \mathbf{W}_Q)(\mathbf{X} \mathbf{W}_K)^T}{\sqrt{d_k}}\right) (\mathbf{X} \mathbf{W}_V)
+$$
+
+This is the complete single-head self-attention computation.
+The input is one thing ($\mathbf{X}$). The output is a contextualized version of $\mathbf{X}$
+where each token's representation has been enriched by attending to other tokens — as determined
+by the learned projections.
+
+---
+
+## Self-Attention and Cross-Attention
+
+The attention computation from Chapters 2–4 is always the same: score, normalize, aggregate.
+What changes between variants is **where the Query, Key, and Value inputs come from**.
+This single decision — the source of Q, K, V — defines the two major categories of attention.
+
+### Self-Attention
+
+In self-attention, all three inputs come from the **same sequence**:
+
+$$
+\mathbf{Q} = \mathbf{X} \mathbf{W}_Q, \quad \mathbf{K} = \mathbf{X} \mathbf{W}_K, \quad \mathbf{V} = \mathbf{X} \mathbf{W}_V
+$$
+
+Every token in the sequence computes compatibility scores with every other token (including itself),
+and every token's output is a weighted blend of all tokens in the sequence.
+
+This is how the model builds **contextual representations**. The input embeddings are context-independent —
+the embedding of "apple" is the same whether it appears in "eat apple" or "buy Apple stock".
+After self-attention, each token's representation is context-dependent: the output for "apple"
+in "eat apple" is different from the output for "apple" in "buy Apple stock",
+because different tokens receive high attention weight in each case.
+
+Self-attention allows every token to directly attend to every other token in one step,
+regardless of distance. This is fundamentally different from recurrent models (where distant tokens
+must pass information through a chain of hidden states) and convolutional models
+(where distant tokens interact only through stacked layers).
+
+### Masked Self-Attention
+
+In autoregressive models (language models, text generation), the model generates one token at a time.
+When generating token $t$, it should only have access to tokens $1, \ldots, t$ — not future tokens.
+
+Masked self-attention enforces this by setting compatibility scores for future positions to $-\infty$
+before softmax:
+
+$$
+e_{t,s} = \begin{cases} f(\mathbf{q}_t, \mathbf{k}_s) & \text{if } s \le t \\ -\infty & \text{if } s > t \end{cases}
+$$
+
+After softmax, $\exp(-\infty) = 0$, so future tokens receive zero attention weight.
+The mask is typically implemented as adding a triangular matrix of $-\infty$ values to the score matrix.
+
+### Cross-Attention
+
+In cross-attention, the Query comes from one sequence and the Key and Value come from a **different** sequence:
+
+$$
+\mathbf{Q} = \mathbf{X}_{\text{target}} \mathbf{W}_Q, \quad \mathbf{K} = \mathbf{X}_{\text{source}} \mathbf{W}_K, \quad \mathbf{V} = \mathbf{X}_{\text{source}} \mathbf{W}_V
+$$
+
+This is how one sequence reads information from another.
+In machine translation, the decoder (generating the target language) uses cross-attention to
+read the encoder's representation of the source language.
+Each decoder token asks: "which parts of the source sentence are relevant to what I am generating right now?"
+
+Cross-attention also appears in vision-language models (text queries attending to image patch representations),
+retrieval-augmented generation (queries attending to retrieved documents),
+and any architecture where two different sequences need to interact.
+
+### The Three Attention Layers in the Transformer
+
+The original Transformer has three distinct attention layers, each with a different source configuration:
+
+**1. Encoder self-attention.** The input sequence attends to itself.
+Keys, Queries, and Values all come from the encoder's input.
+This builds contextualized representations of the source — each source token
+becomes aware of all other source tokens.
+
+**2. Decoder masked self-attention.** The output sequence attends to itself, with a causal mask.
+Keys, Queries, and Values all come from the decoder's input (the tokens generated so far).
+This builds representations of the partial output — each generated token is aware of
+all previously generated tokens, but not future ones.
+
+**3. Decoder cross-attention.** The output sequence attends to the encoder's output.
+Queries come from the decoder. Keys and Values come from the encoder.
+This is where the decoder reads the source to decide what to generate next.
+
+### Interactive: Self-Attention Patterns
+
+Click on different words to see which tokens they attend to.
+Try different sentences to see how attention patterns change
+based on syntactic and semantic relationships:
+
+<div className="my-6">
+  <SelfAttentionVisualizer />
+  <div className="mt-2 text-center text-sm text-gray-500">
+    Fig. 4 — Self-attention weights. Click a query word to see its attention distribution across
+    keys.
+  </div>
+</div>
+
+In the "disambiguation" example, notice that "apple" attends most strongly to "eat" (0.45).
+This is the core mechanism: "eat" provides the disambiguating signal that "apple" is a fruit,
+and high attention weight means the Value vector of "eat" dominates the output representation for "apple".
+
+In the "coreference" example, notice that "it" attends most strongly to "cat" (0.55).
+The pronoun resolves its reference through attention — the model learns that "it" refers to "the cat"
+by giving "cat" the highest compatibility score when "it" is the query.
+
+---
+
+## Multi-Head Attention
+
+So far, we have described a single attention head — one set of projections ($\mathbf{W}_Q$, $\mathbf{W}_K$, $\mathbf{W}_V$)
+producing one attention distribution and one output. But language encodes many different types of
+relationships simultaneously. A single word might be syntactically related to its verb (subject-verb agreement),
+semantically related to a distant noun (coreference), and positionally related to its neighbors (local context).
+
+A single attention head computes one set of attention weights — one "view" of which tokens relate to which.
+It cannot simultaneously express all of these different relationship types.
+
+### The Multi-Head Computation
+
+Multi-head attention runs $h$ independent attention heads in parallel, each with its own set of projections:
+
+$$
+\text{head}_i = \text{Attention}(\mathbf{X} \mathbf{W}_Q^i, \; \mathbf{X} \mathbf{W}_K^i, \; \mathbf{X} \mathbf{W}_V^i)
+$$
+
+Each head $i$ has its own $\mathbf{W}_Q^i$, $\mathbf{W}_K^i$, $\mathbf{W}_V^i$,
+so each head can learn to attend to a different type of relationship.
+
+The outputs of all heads are concatenated along the feature dimension and projected through
+a final learned matrix $\mathbf{W}_O$:
+
+$$
+\text{MultiHead}(\mathbf{X}) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h) \; \mathbf{W}_O
+$$
+
+where $\mathbf{W}_O \in \mathbb{R}^{h \cdot d_v \times d_{\text{model}}}$.
+
+### Why Multiple Small Heads Instead of One Large Head?
+
+Each head operates in a lower-dimensional space: $d_k = d_{\text{model}} / h$.
+For a model with $d_{\text{model}} = 512$ and $h = 8$, each head works in $d_k = 64$ dimensions.
+
+A single head with $d_k = 512$ could, in theory, learn the same function.
+But multiple smaller heads have practical advantages:
+
+**Specialization is easier to learn.** Each head can independently converge on one
+relationship type — syntactic dependencies, semantic similarity, positional patterns —
+without interference. A single head would need to represent all these relationships
+in a single set of attention weights, which is a harder optimization problem.
+
+**Different heads attend to different things in practice.** Empirical studies have visualized
+individual attention heads and found them learning distinct patterns:
+some heads track subject-verb dependencies, others attend to adjacent tokens,
+and others capture rare long-range connections.[^3] This specialization emerges
+from training — it is not engineered.
+
+**Computational cost is the same.** The total number of parameters and FLOPs is identical to
+one head with full dimension. Multi-head attention is a reparameterization, not an additional cost.
+
+### The Role of the Output Projection
+
+Without $\mathbf{W}_O$, the multi-head output would be a simple concatenation of independent head outputs.
+Each head's contribution to any given output dimension would be fixed.
+
+$\mathbf{W}_O$ mixes information across heads, allowing the model to learn which combinations of head outputs
+are useful for downstream computation. It acts as a learned "committee decision" over the heads —
+some heads' contributions might be amplified, others suppressed, depending on what the next layer needs.
+
+---
+
+## Modern Variants
+
+The attention mechanism as described in Chapters 1–6 is the foundation of all Transformer-based models.
+It works — but it has two practical bottlenecks that become serious at scale:
+
+1. **Quadratic cost.** The attention score matrix is $T \times S$. For long sequences, both compute and memory scale as $O(T \times S)$.
+2. **KV cache size.** During autoregressive generation, Key and Value tensors for all previous tokens must be stored in memory. With $h$ heads, this grows as $O(h \cdot S \cdot d_k)$.
+
+Modern variants preserve the core computation (score → normalize → aggregate) while rethinking
+specific design choices to address these bottlenecks.
+
+### Multi-Query Attention (MQA)
+
+Multi-Query Attention, introduced by Shazeer (2019)[^4], addresses the KV cache bottleneck
+with a simple structural change: all attention heads share a **single** Key projection and a
+**single** Value projection, while each head retains its own Query projection.
+
+$$
+\mathbf{K} = \mathbf{X} \mathbf{W}_K, \quad \mathbf{V} = \mathbf{X} \mathbf{W}_V \quad \text{(one copy, shared across all heads)}
+$$
+
+$$
+\mathbf{Q}_i = \mathbf{X} \mathbf{W}_Q^i \quad \text{(separate for each head } i \text{)}
+$$
+
+**Why this works.** The Query projections are where most of the per-head specialization happens.
+Each head still asks a different question of the sequence (via its own $\mathbf{W}_Q^i$),
+but they all search through the same set of Keys and retrieve from the same set of Values.
+
+**The benefit.** The KV cache shrinks by a factor of $h$. For a model with 32 heads, this is a 32× reduction
+in KV cache memory — the difference between fitting on one GPU and needing four.
+
+**The cost.** Heads can no longer specialize what they advertise (Key) or what information they carry (Value).
+In practice, quality degrades slightly compared to full multi-head attention.
+
+### Grouped-Query Attention (GQA)
+
+Grouped-Query Attention, introduced by Ainslie et al. (2023)[^5], is a middle ground between
+full multi-head attention (each head has its own KV) and multi-query attention (all heads share one KV).
+
+The $h$ attention heads are divided into $g$ groups. Each group of $h/g$ query heads shares one
+Key projection and one Value projection:
+
+- When $g = 1$: all heads share one KV → Multi-Query Attention (MQA)
+- When $g = h$: each head has its own KV → standard Multi-Head Attention (MHA)
+- When $1 < g < h$: a tunable tradeoff between memory and quality
+
+For example, Llama 2 70B uses $h = 64$ query heads divided into $g = 8$ groups.
+Each group of 8 query heads shares one KV pair. The KV cache is 8× smaller than full MHA
+while recovering most of MHA's quality.
+
+GQA has become the default for large-scale models because it provides a practical knob:
+increase $g$ for quality, decrease $g$ for memory savings, without changing the architecture.
+
+### Flash Attention
+
+Flash Attention, introduced by Dao et al. (2022)[^6], addresses the quadratic memory bottleneck
+without changing the math at all.
+
+**The problem.** The standard implementation materializes the full $T \times S$ attention score matrix
+in GPU memory. For a sequence of length 8,192 with float16, this matrix alone takes 128 MB per head.
+Modern GPUs have fast SRAM (on-chip memory, ~20 MB) and slower HBM (high-bandwidth memory, ~40–80 GB).
+The standard implementation writes the score matrix to HBM and reads it back — the memory bandwidth,
+not the compute, is the bottleneck.
+
+**The solution.** Flash Attention processes the attention computation in **tiles**:
+small blocks of queries are scored against small blocks of keys,
+and the softmax numerator and denominator are accumulated incrementally across tiles.
+The full $T \times S$ score matrix is **never materialized** in memory.
+
+**The result is mathematically identical** — this is not an approximation. The same attention weights,
+the same output. But:
+
+- Memory drops from $O(T \times S)$ to $O(T)$.
+- Wall-clock speed improves 2–4× because the computation stays in fast SRAM.
+- Training on sequences of 16K, 32K, or longer becomes practical.
+
+Flash Attention is now the default attention implementation in most deep learning frameworks.
+Its key insight is that attention's bottleneck was never the arithmetic — it was the memory access pattern.
+
+### Sliding Window Attention
+
+Full attention computes scores between every pair of tokens: $O(T^2)$ in both compute and memory.
+For very long sequences — documents, codebases, books — this becomes prohibitive even with Flash Attention.
+
+Sliding window attention, used in models like Longformer[^7] and Mistral[^8], restricts each token to attend
+only to a fixed window of $w$ nearby tokens:
+
+$$
+a_{t,s} = 0 \quad \text{for } |t - s| > w/2
+$$
+
+**Why a window works.** Most linguistic dependencies are local — a word is most often related to
+nearby words. By attending only within a window, each layer captures local context in $O(T \cdot w)$ time.
+
+**Building long-range context through depth.** With $L$ stacked layers, each using a window of size $w$,
+information can propagate across $L \times w$ tokens — similar to how stacked convolutions build large
+receptive fields. A 32-layer model with a window of 4,096 can theoretically propagate information
+across 131,072 tokens.
+
+**Hybrid approaches.** In practice, models combine sliding window attention in most layers with a few
+full-attention layers (or global attention tokens) that provide direct long-range access.
+Mistral, for example, uses sliding window attention for efficiency and adds a few full-attention layers
+to maintain global coherence.
+
+### Summary
+
+| Variant             | What changes                            | Core benefit                            | Tradeoff                           |
+| ------------------- | --------------------------------------- | --------------------------------------- | ---------------------------------- |
+| **MQA**             | All heads share one KV                  | KV cache shrinks by $h\times$           | Slight quality loss from shared KV |
+| **GQA**             | Heads grouped, groups share KV          | Tunable memory-quality tradeoff         | More hyperparameters to set        |
+| **Flash Attention** | Tiled computation, no full score matrix | Same output, 2–4× faster, $O(T)$ memory | Implementation complexity          |
+| **Sliding Window**  | Each token attends to $w$ neighbors     | $O(T \cdot w)$ instead of $O(T^2)$      | Direct context bounded by window   |
+
+These variants are not mutually exclusive. A modern large language model might use GQA (for KV cache efficiency),
+with Flash Attention (for compute efficiency), and sliding window in some layers (for sequence length scaling) — all at once.
+
+---
+
+## Afterword
+
+The attention mechanism is a deceptively simple idea: weighted retrieval over learned representations.
+
+Its power comes not from the retrieval itself — which is just a weighted sum — but from the
+combination of three design choices: learned projections that create specialized Query/Key/Value views,
+multiple heads that capture different relationship types, and scaled dot products that keep
+gradients flowing. Everything since the original Transformer has been an exercise in
+preserving these properties while addressing the quadratic cost and memory overhead
+that come with them.
+
+Understanding attention well means understanding what is fixed (the score → normalize → aggregate pipeline),
+what is a design choice (the compatibility function, the source of Q/K/V, the number of heads),
+and what is an engineering optimization (scaling, tiling, caching). Each chapter in this article
+addresses one of these layers. Revisit the one you need.
+
+[^1]: [Vaswani et al., "Attention Is All You Need" (2017)](https://arxiv.org/abs/1706.03762)
+[^2]: [Bahdanau et al., "Neural Machine Translation by Jointly Learning to Align and Translate" (2014)](https://arxiv.org/abs/1409.0473)
+[^3]: [Clark et al., "What Does BERT Look At? An Analysis of BERT's Attention" (2019)](https://arxiv.org/abs/1906.04341)
+[^4]: [Shazeer, "Fast Transformer Decoding: One Write-Head is All You Need" (2019)](https://arxiv.org/abs/1911.02150)
+[^5]: [Ainslie et al., "GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints" (2023)](https://arxiv.org/abs/2305.13245)
+[^6]: [Dao et al., "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness" (2022)](https://arxiv.org/abs/2205.14135)
+[^7]: [Beltagy et al., "Longformer: The Long-Document Transformer" (2020)](https://arxiv.org/abs/2004.05150)
+[^8]: [Jiang et al., "Mistral 7B" (2023)](https://arxiv.org/abs/2310.06825)

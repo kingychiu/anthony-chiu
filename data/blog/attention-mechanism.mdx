@@ -41,15 +41,11 @@ related Key-Value pairs. The system returns an `Output` that is the associated `
 
 ### Exact Matching
 
-<div className="text-center">
-  <Image
-    style={{ background: 'white' }}
-    alt="Information Retrieval"
-    src="/static/images/attention/information-retrieval.png"
-    width="587"
-    height="226"
-  />
-  <div>Fig.1 Finding the Exact Income by a Person's Name</div>
+<div className="my-4">
+  <ExactMatchRetrieval />
+  <div className="mt-2 text-center text-sm">
+    Fig.1 Finding the Exact Income by a Person's Name (Interactive)
+  </div>
 </div>
 
 In Fig.1, we have a basic system that allows users to find the exact income by a person's name. The system stores the `Values` (Income) indexed by `Keys` (Name).
@@ -58,15 +54,11 @@ that is related to the `Query` (Name).
 
 ### Query-Key Compatibility
 
-<div className="text-center">
-  <Image
-    style={{ background: 'white' }}
-    alt="Information Retrieval (Fuzzy Matching)"
-    src="/static/images/attention/information-retrieval-fuzzy.png"
-    width="646"
-    height="225"
-  />
-  <div>Fig.2 Estimating a Person's Income by His/Her Name</div>
+<div className="my-4">
+  <FuzzyMatchRetrieval />
+  <div className="mt-2 text-center text-sm">
+    Fig.2 Estimating a Person's Income by His/Her Name (Interactive)
+  </div>
 </div>
 
 Sometimes, we might not want an exact matching between `Query` and `Key`. For example, in Fig.2,
